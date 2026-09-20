@@ -206,6 +206,55 @@ def run_training(model_type: str = "all", pin_check: bool = False) -> Dict[str, 
         artifact_mgr.save_metrics("lstm", test_metrics_lstm)
         metrics_summary["LSTM"] = test_metrics_lstm
 
+    # Persist unified training results artifact
+    import json
+    training_results = {
+        "gistemp_sha256": current_sha,
+        "test_window": f"{split.test_start} .. {split.test_end}",
+        "n_test": len(split.X_test),
+        "metrics": {
+            "seasonal_naive": {
+                "mae": sn_test_metrics["mae"],
+                "rmse": sn_test_metrics["rmse"],
+                "skill_score": sn_test_metrics["skill_score"],
+                "skill_score_h12": sn_test_metrics.get("h12_metrics", {}).get("skill_score", 0.0),
+            },
+            "climatology": {
+                "mae": clim_test_metrics["mae"],
+                "rmse": clim_test_metrics["rmse"],
+                "skill_score": clim_test_metrics["skill_score"],
+                "skill_score_h12": clim_test_metrics.get("h12_metrics", {}).get("skill_score", 0.0),
+            },
+        },
+    }
+    if "XGBoost" in metrics_summary:
+        m = metrics_summary["XGBoost"]
+        training_results["metrics"]["xgboost"] = {
+            "mae": m["mae"],
+            "rmse": m["rmse"],
+            "skill_score": m["skill_score"],
+            "skill_score_h12": m.get("h12_metrics", {}).get("skill_score", 0.0),
+        }
+    if "LightGBM" in metrics_summary:
+        m = metrics_summary["LightGBM"]
+        training_results["metrics"]["lightgbm"] = {
+            "mae": m["mae"],
+            "rmse": m["rmse"],
+            "skill_score": m["skill_score"],
+            "skill_score_h12": m.get("h12_metrics", {}).get("skill_score", 0.0),
+        }
+    if "LSTM" in metrics_summary:
+        m = metrics_summary["LSTM"]
+        training_results["metrics"]["lstm"] = {
+            "mae": m["mae"],
+            "rmse": m["rmse"],
+            "skill_score": m["skill_score"],
+            "skill_score_h12": m.get("h12_metrics", {}).get("skill_score", 0.0),
+        }
+
+    tr_path = settings.models_dir / "training_results.json"
+    tr_path.write_text(json.dumps(training_results, indent=2), encoding="utf-8")
+
     print("\n=======================================================")
     print("CLIMORA AI — MODEL TRAINING & EVALUATION REPORT")
     print("=======================================================")

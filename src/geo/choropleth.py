@@ -25,16 +25,20 @@ def get_country_polygons() -> Dict[str, Any]:
         if not features:
             raise ValueError(f"Natural Earth GeoJSON at {geo_path} contains 0 features.")
 
-        # Data-bound fill color calculation (data-driven per feature ISO code)
+        # Deterministic boundary styling based on Natural Earth geography metadata
+        continent_colors = {
+            "Asia": [239, 68, 68, 100],
+            "Africa": [245, 158, 11, 100],
+            "Europe": [59, 130, 246, 100],
+            "North America": [16, 185, 129, 100],
+            "South America": [139, 92, 246, 100],
+            "Oceania": [236, 72, 153, 100],
+            "Antarctica": [148, 163, 184, 100],
+        }
         for feat in features:
             props = feat.get("properties", {})
-            iso = str(props.get("ISO_A3", props.get("iso_a3", "-99")))
-            val = (abs(hash(iso)) % 100) / 100.0
-            r = int(40 + val * 180)
-            g = int(100 + (1.0 - val) * 80)
-            b = int(180 - val * 60)
-            props["fill_color"] = [r, g, b, 120]
-            props["risk_index"] = round(val * 100, 1)
+            continent = str(props.get("CONTINENT", "Unknown"))
+            props["fill_color"] = continent_colors.get(continent, [100, 116, 139, 100])
             feat["properties"] = props
 
         return data

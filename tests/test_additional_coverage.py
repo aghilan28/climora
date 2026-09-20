@@ -2,7 +2,7 @@
 
 import json
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, List
 from unittest.mock import patch
 
 import numpy as np
@@ -304,7 +304,9 @@ def test_lstm_sensitivity_calculation() -> None:
         def name(self) -> str:
             return "MockLSTM"
 
-        def fit(self, X_train: pd.DataFrame, y_train: pd.Series, X_val: pd.DataFrame | None = None, y_val: pd.Series | None = None) -> ClimateModel:
+        feature_names: List[str] = []
+
+        def fit(self, X: pd.DataFrame, y: pd.Series, X_val: pd.DataFrame | None = None, y_val: pd.Series | None = None) -> ClimateModel:
             return self
 
         def predict(self, X: pd.DataFrame) -> np.ndarray:

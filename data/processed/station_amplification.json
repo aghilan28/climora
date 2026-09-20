@@ -1,0 +1,32 @@
+{
+  "n_stations": 12,
+  "fetch_date": "2026-09-20",
+  "factors": {
+    "Chennai": 1.0,
+    "Delhi": 2.5,
+    "Mumbai": 2.5,
+    "Kolkata": 2.5,
+    "Bengaluru": 2.5,
+    "Hyderabad": 2.5,
+    "Ahmedabad": 2.5,
+    "Jaipur": 2.5,
+    "Pune": 2.5,
+    "Lucknow": 2.5,
+    "Patna": 2.5,
+    "Guwahati": 2.5
+  },
+  "raw_factors": {
+    "Chennai": 1.0,
+    "Delhi": 7.7477,
+    "Mumbai": 7.7477,
+    "Kolkata": 5.8716,
+    "Bengaluru": 7.7477,
+    "Hyderabad": 7.7477,
+    "Ahmedabad": 7.7477,
+    "Jaipur": 7.7477,
+    "Pune": 5.0984,
+    "Lucknow": 7.7477,
+    "Patna": 7.7477,
+    "Guwahati": 7.7477
+  }
+}

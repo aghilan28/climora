@@ -9,10 +9,24 @@ ROOT_DIR = Path(__file__).resolve().parent.parent
 
 
 def test_committed_bootstrap_artifacts_exist() -> None:
-    """Assert required offline bootstrap artifacts exist in git tree."""
-    assert (ROOT_DIR / "data" / "raw" / "geo" / "natural_earth_110m.geojson").exists()
-    assert (ROOT_DIR / "data" / "processed" / "station_amplification.json").exists()
-    assert (ROOT_DIR / "models" / "training_results.json").exists()
+    """Assert required offline bootstrap artifacts exist in filesystem and are tracked in git tree."""
+    import subprocess
+    bootstrap_files = [
+        "data/raw/geo/natural_earth_110m.geojson",
+        "data/raw/gistemp/gistemp_raw.csv",
+        "data/raw/noaa/noaa_co2_raw.csv",
+        "data/raw/noaa/ersst_nino_raw.ascii",
+        "data/processed/station_amplification.json",
+        "models/training_results.json",
+    ]
+    for rel_path in bootstrap_files:
+        p = ROOT_DIR / rel_path
+        assert p.exists(), f"Bootstrap artifact missing from filesystem: {rel_path}"
+
+    res = subprocess.run(["git", "ls-files"], cwd=ROOT_DIR, capture_output=True, text=True, check=True)
+    tracked_files = set(res.stdout.splitlines())
+    for rel_path in bootstrap_files:
+        assert rel_path in tracked_files, f"Bootstrap artifact {rel_path} is NOT tracked by git ls-files!"
 
 
 def test_import_and_render_all_streamlit_pages() -> None:

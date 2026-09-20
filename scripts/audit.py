@@ -162,7 +162,7 @@ def main() -> None:
     )
 
     # Check 7: Mypy static type analysis
-    code_mypy, out_mypy = run_command([python_exe, "-m", "mypy", "src", "dashboard", "app.py", "scripts", "config"])
+    code_mypy, out_mypy = run_command([python_exe, "-m", "mypy", "--explicit-package-bases", "src", "dashboard", "app.py", "scripts", "config", "tests"])
     mypy_clean = code_mypy == 0 and "errors prevented further checking" not in out_mypy
     passed &= check_item(
         "Mypy type analysis exits 0 without 'errors prevented further checking'",

@@ -48,3 +48,27 @@ def test_verify_readme_negative_control_perturbed_metric(tmp_path: Path) -> None
 
     from scripts.verify_readme import verify_readme_metrics
     assert not verify_readme_metrics(readme_path=temp_readme), "verify_readme should fail on perturbed metric!"
+
+
+def test_pin_check_negative_control_perturbed_gistemp(tmp_path: Path) -> None:
+    """Negative control: assert pin-check exits 1 when raw GISTEMP CSV data is corrupted or modified."""
+    # Run pin check with a corrupted gistemp file via temporary cache directory
+    fake_raw_dir = tmp_path / "data" / "raw" / "gistemp"
+    fake_raw_dir.mkdir(parents=True, exist_ok=True)
+    (fake_raw_dir / "gistemp_raw.csv").write_text(
+        "Header line\nYear,Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec\n2020,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5\n",
+        encoding="utf-8",
+    )
+
+    from src.data.providers.nasa_giss import NasaGissProvider
+    provider = NasaGissProvider(fake_raw_dir)
+    raw_bytes = provider.fetch_raw(offline=True)
+    df = provider.parse(raw_bytes)
+    entry = provider.get_manifest_entry(raw_bytes, df)
+
+    data_cfg = yaml.safe_load((ROOT_DIR / "config" / "data.yaml").read_text(encoding="utf-8"))
+    pinned_sha = data_cfg["dataset"]["pinned_sha256"]
+
+    current_sha = entry["sha256"]
+    assert current_sha != pinned_sha, "Corrupted dataset SHA should not match pinned SHA"
+

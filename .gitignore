@@ -32,9 +32,17 @@ ENV/
 env/
 
 # Data & Models (never commit large raw files or trained binaries)
-data/raw/
+data/raw/*
+!data/raw/geo/
 !data/raw/geo/natural_earth_110m.geojson
-data/processed/
+!data/raw/gistemp/
+!data/raw/gistemp/gistemp_raw.csv
+!data/raw/noaa/
+!data/raw/noaa/noaa_co2_raw.csv
+!data/raw/noaa/ersst_nino_raw.ascii
+!data/raw/openmeteo/
+!data/raw/openmeteo/*.json
+data/processed/*
 !data/processed/station_amplification.json
 !data/processed/scanner_selftest_passed.marker
 models/trained/

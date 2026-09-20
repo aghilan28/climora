@@ -35,7 +35,7 @@ def test_no_fillna_literal_in_geo_package() -> None:
     assert "fillna(1.0)" not in content, "Found fillna(1.0) fallback in station_network.py!"
 
 
-def test_download_all_datasets_atomic_failure(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_download_all_datasets_atomic_failure(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     """Assert download_all_datasets exits with non-zero code if any station download fails."""
     from typing import Any
 
@@ -47,6 +47,9 @@ def test_download_all_datasets_atomic_failure(monkeypatch: pytest.MonkeyPatch) -
             raise RuntimeError("Simulated Open-Meteo HTTP 429 Rate Limit")
         return pd.DataFrame({"date": ["2020-01-01"], "temperature_2m_mean": [25.0]}), {"source_url": "mock"}
 
+    from src.data.manifest import ManifestManager
+    fake_manifest = ManifestManager(manifest_path=tmp_path / "manifest.json")
+    monkeypatch.setattr(dd, "ManifestManager", lambda: fake_manifest)
     monkeypatch.setattr(dd, "load_open_meteo_station", mock_load_station)
     monkeypatch.setattr(dd, "load_gistemp_data", lambda offline=False: (pd.DataFrame({"year": [1990], "anomaly_c": [0.2]}), {}))
     monkeypatch.setattr(dd, "load_noaa_co2_data", lambda offline=False: (pd.DataFrame(), {}))
