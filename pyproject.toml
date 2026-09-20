@@ -48,7 +48,3 @@ markers = [
     "network: marks tests that require external network access",
     "slow: marks tests that take more than 5 seconds",
 ]
-filterwarnings = [
-    "ignore::DeprecationWarning",
-    "ignore::UserWarning",
-]

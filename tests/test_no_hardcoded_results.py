@@ -12,8 +12,6 @@ def test_no_hardcoded_metrics_in_dashboard() -> None:
     dashboard_dir = Path("dashboard")
     python_files = list(dashboard_dir.glob("**/*.py")) + [Path("app.py")]
 
-    # Match pattern: st.metric("Title", "0.5") or st.metric("Title", f"0.5") with literal float
-    # We permit metric labels, but value string must not be a plain literal numeric constant like "1.23 °C" hardcoded without variable formatting
     metric_literal_pattern = re.compile(r'st\.metric\([^,]+,\s*["\'](?:\+|-)?\d+\.\d+\s*(?:°C|%|ppm)?["\']\)')
 
     for filepath in python_files:
@@ -27,13 +25,30 @@ def test_no_hardcoded_risk_bands_outside_src_risk() -> None:
     dashboard_dir = Path("dashboard")
     python_files = list(dashboard_dir.glob("**/*.py"))
 
-    # Check that strings like "SEVERE_RISK" or "EXTREME_RISK" aren't hardcoded as raw variable values outside bands.py
     hardcoded_band_pattern = re.compile(r'["\'](?:SEVERE|EXTREME)_RISK["\']')
 
     for filepath in python_files:
         content = filepath.read_text(encoding="utf-8")
         matches = hardcoded_band_pattern.findall(content)
         assert not matches, f"Hardcoded risk band string found in {filepath}: {matches}"
+
+
+def test_no_hardcoded_numeric_arrays_in_dashboard_pages() -> None:
+    """Ensure dashboard pages do not hardcode lists of coordinates or risk scores directly."""
+    dashboard_pages_dir = Path("dashboard/pages")
+    python_files = list(dashboard_pages_dir.glob("*.py"))
+
+    for filepath in python_files:
+        tree = ast.parse(filepath.read_text(encoding="utf-8"), filename=str(filepath))
+        for node in ast.walk(tree):
+            # Check for assign nodes where target is 'lat' or 'lon' or 'risk_score' set to a list literal of floats/numbers
+            if isinstance(node, ast.Dict):
+                for key, value in zip(node.keys, node.values, strict=False):
+                    if isinstance(key, ast.Constant) and key.value in ("lat", "lon", "station", "risk_score"):
+                        if isinstance(value, ast.List) and len(value.elts) > 3:
+                            # Verify if the list elements are raw hardcoded numbers
+                            has_constants = any(isinstance(elt, ast.Constant) and isinstance(elt.value, (int, float)) for elt in value.elts)
+                            assert not has_constants, f"Hardcoded numeric array found for '{key.value}' in {filepath}"
 
 
 def test_ast_parsing_validity() -> None:

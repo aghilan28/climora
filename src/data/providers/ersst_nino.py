@@ -32,11 +32,7 @@ class ERSSTNinoProvider(BaseProvider):
             raise FileNotFoundError(f"Offline mode enabled and cache missing: {cache_file}")
 
         logger.info("Fetching CPC ERSST Nino from network: %s", self.source_url)
-        # Custom SSL context for NOAA NCEP server legacy cert configuration on Windows
         ctx = ssl.create_default_context()
-        ctx.check_hostname = False
-        ctx.verify_mode = ssl.CERT_NONE
-
         req = urllib.request.Request(self.source_url, headers={"User-Agent": "CLIMORA-AI/1.0"})
         with urllib.request.urlopen(req, context=ctx, timeout=30) as resp:
             content = resp.read()

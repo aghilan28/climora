@@ -1,7 +1,15 @@
 """Headless training script for CLIMORA AI climate models."""
+# ruff: noqa: E402
 
 import argparse
+import sys
+from pathlib import Path
 from typing import Any, Dict
+
+# Ensure project root is in sys.path
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 from config.settings import settings
 from src.data.loaders import load_ersst_nino_data, load_gistemp_data, load_noaa_co2_data

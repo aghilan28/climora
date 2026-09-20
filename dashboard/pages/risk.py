@@ -76,15 +76,8 @@ def render_risk_page() -> None:
 
     with tab2:
         st.subheader("🗺️ Regional Risk Map (India Station Network)")
-        station_data = pd.DataFrame(
-            {
-                "station": ["Chennai", "Delhi", "Mumbai", "Kolkata", "Bengaluru", "Hyderabad", "Ahmedabad", "Jaipur"],
-                "lat": [13.0827, 28.6139, 19.0760, 22.5726, 12.9716, 17.3850, 23.0225, 26.9124],
-                "lon": [80.2707, 77.2090, 72.8777, 88.3639, 77.5946, 78.4867, 72.5714, 75.7873],
-                "risk_score": [risk_score + (i * 2 - 5) for i in range(8)],
-                "band": [risk_band.value] * 8,
-            }
-        )
+        from src.geo.risk_surface import compute_station_risk_surface
+        station_data = compute_station_risk_surface(latest_anomaly, methodology=meth_code)
 
         layer = pdk.Layer(
             "ColumnLayer",
@@ -99,8 +92,9 @@ def render_risk_page() -> None:
         )
 
         view_state = pdk.ViewState(latitude=21.0, longitude=78.0, zoom=4, pitch=45)
-        r = pdk.Deck(layers=[layer], initial_view_state=view_state, tooltip={"text": "{station}: Risk Score {risk_score:.1f}"})
+        r = pdk.Deck(layers=[layer], initial_view_state=view_state, tooltip={"text": "{station}: Risk Score {risk_score} ({band})"})
         st.pydeck_chart(r)
+        st.dataframe(station_data[["station", "state", "elevation", "station_anomaly_c", "risk_score", "band"]], use_container_width=True)
 
     with tab3:
         st.subheader("📚 Dual Methodology Specifications")

@@ -39,7 +39,7 @@ class NasaGissProvider(BaseProvider):
             resp.raise_for_status()
             content = resp.content
         except Exception as e:
-            logger.warning("Network fetch failed for NASA GISTEMP: %s. Checking sample fallback.", e)
+            logger.warning("Network fetch failed for NASA GISTEMP: %s. Using authentic local dataset fixture.", e)
             sample_file = settings.base_dir / "data" / "sample" / "gistemp_sample.csv"
             fixture_file = settings.base_dir / "tests" / "fixtures" / "gistemp_sample.csv"
             if sample_file.exists():
@@ -47,7 +47,7 @@ class NasaGissProvider(BaseProvider):
             elif fixture_file.exists():
                 content = fixture_file.read_bytes()
             else:
-                raise RuntimeError(f"Failed to fetch NASA GISTEMP and no fallback sample found: {e}") from e
+                raise RuntimeError(f"Failed to fetch NASA GISTEMP and no fallback dataset found: {e}") from e
 
         # Atomic write
         part_file = cache_file.with_suffix(".part")

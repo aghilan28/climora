@@ -1,6 +1,14 @@
 """Idempotent data downloader script for CLIMORA AI datasets."""
+# ruff: noqa: E402
 
 import argparse
+import sys
+from pathlib import Path
+
+# Ensure project root is in sys.path
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.data.loaders import (
     load_ersst_nino_data,
@@ -62,7 +70,7 @@ def download_all_datasets(offline: bool = False, verify_only: bool = False) -> N
         logger.error("Failed to process Open-Meteo station Chennai: %s", e)
 
     print("\n=======================================================")
-    print("CLIMORA AI — DATAINGESTION & MANIFEST VERIFICATION")
+    print("CLIMORA AI — DATA INGESTION & MANIFEST VERIFICATION")
     print("=======================================================")
     for name, entry, df in datasets_to_process:
         print(f"\n[DATASET] {name}")

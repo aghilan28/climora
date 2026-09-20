@@ -97,3 +97,73 @@
 [2026-09-20 13:47:08] [INFO] [climora:lstm_model.py:170] PyTorch LSTM training complete.
 [2026-09-20 13:47:08] [INFO] [climora:lstm_model.py:237] Saved PyTorch LSTM model artifacts to C:\Users\Admin\Downloads\CLIMORA\models\trained
 [2026-09-20 13:47:08] [INFO] [climora:artifacts.py:27] Saved metrics for lstm to C:\Users\Admin\Downloads\CLIMORA\models\metrics\lstm_metrics.json
+[2026-09-20 15:00:00] [INFO] [climora.dashboard.state:state.py:79] Bootstrapping CLIMORA AI application state...
+[2026-09-20 15:00:00] [INFO] [climora:nasa_giss.py:27] Reading NASA GISTEMP from cache: C:\Users\Admin\Downloads\CLIMORA\data\raw\gistemp\gistemp_raw.csv
+[2026-09-20 15:00:00] [INFO] [climora:noaa_gml.py:29] Reading NOAA CO2 from cache: C:\Users\Admin\Downloads\CLIMORA\data\raw\noaa\noaa_co2_raw.csv
+[2026-09-20 15:00:00] [INFO] [climora:ersst_nino.py:28] Reading CPC ERSST Nino from cache: C:\Users\Admin\Downloads\CLIMORA\data\raw\noaa\ersst_nino_raw.ascii
+[2026-09-20 15:00:00] [INFO] [climora.dashboard.state:state.py:50] System stage transitioned to: LOADED
+[2026-09-20 15:00:00] [INFO] [climora.dashboard.state:state.py:50] System stage transitioned to: VALIDATED
+[2026-09-20 15:00:00] [INFO] [climora:cleaning.py:118] Data cleaning complete: 1764 -> 1764 rows (1 actions logged)
+[2026-09-20 15:00:00] [INFO] [climora.dashboard.state:state.py:50] System stage transitioned to: FEATURES_READY
+[2026-09-20 15:00:00] [INFO] [climora.dashboard.state:state.py:50] System stage transitioned to: MODELS_TRAINED
+[2026-09-20 15:00:00] [INFO] [climora:isolation_forest.py:70] Anomaly detection complete: 89 anomalies detected (5.05% of 1764 records)
+[2026-09-20 15:00:00] [INFO] [climora.dashboard.state:state.py:50] System stage transitioned to: ANOMALY_READY
+[2026-09-20 15:00:00] [INFO] [climora.dashboard.state:state.py:50] System stage transitioned to: FULL_ANALYSIS_READY
+[2026-09-20 15:00:00] [INFO] [climora.dashboard.state:state.py:134] Application state bootstrap completed successfully.
+[2026-09-20 15:05:06] [INFO] [climora.dashboard.state:state.py:79] Bootstrapping CLIMORA AI application state...
+[2026-09-20 15:05:06] [INFO] [climora:nasa_giss.py:27] Reading NASA GISTEMP from cache: C:\Users\Admin\Downloads\CLIMORA\data\raw\gistemp\gistemp_raw.csv
+[2026-09-20 15:05:07] [INFO] [climora:noaa_gml.py:29] Reading NOAA CO2 from cache: C:\Users\Admin\Downloads\CLIMORA\data\raw\noaa\noaa_co2_raw.csv
+[2026-09-20 15:05:07] [INFO] [climora:ersst_nino.py:28] Reading CPC ERSST Nino from cache: C:\Users\Admin\Downloads\CLIMORA\data\raw\noaa\ersst_nino_raw.ascii
+[2026-09-20 15:05:07] [INFO] [climora.dashboard.state:state.py:50] System stage transitioned to: LOADED
+[2026-09-20 15:05:07] [INFO] [climora.dashboard.state:state.py:50] System stage transitioned to: VALIDATED
+[2026-09-20 15:05:07] [INFO] [climora:cleaning.py:118] Data cleaning complete: 1764 -> 1764 rows (1 actions logged)
+[2026-09-20 15:05:07] [INFO] [climora.dashboard.state:state.py:50] System stage transitioned to: FEATURES_READY
+[2026-09-20 15:05:07] [INFO] [climora.dashboard.state:state.py:50] System stage transitioned to: MODELS_TRAINED
+[2026-09-20 15:05:08] [INFO] [climora:isolation_forest.py:70] Anomaly detection complete: 89 anomalies detected (5.05% of 1764 records)
+[2026-09-20 15:05:08] [INFO] [climora.dashboard.state:state.py:50] System stage transitioned to: ANOMALY_READY
+[2026-09-20 15:05:08] [INFO] [climora.dashboard.state:state.py:50] System stage transitioned to: FULL_ANALYSIS_READY
+[2026-09-20 15:05:08] [INFO] [climora.dashboard.state:state.py:134] Application state bootstrap completed successfully.
+[2026-09-20 15:05:15] [INFO] [climora.dashboard.state:state.py:79] Bootstrapping CLIMORA AI application state...
+[2026-09-20 15:05:15] [INFO] [climora:nasa_giss.py:27] Reading NASA GISTEMP from cache: C:\Users\Admin\Downloads\CLIMORA\data\raw\gistemp\gistemp_raw.csv
+[2026-09-20 15:05:16] [INFO] [climora:noaa_gml.py:29] Reading NOAA CO2 from cache: C:\Users\Admin\Downloads\CLIMORA\data\raw\noaa\noaa_co2_raw.csv
+[2026-09-20 15:05:16] [INFO] [climora:ersst_nino.py:28] Reading CPC ERSST Nino from cache: C:\Users\Admin\Downloads\CLIMORA\data\raw\noaa\ersst_nino_raw.ascii
+[2026-09-20 15:05:16] [INFO] [climora.dashboard.state:state.py:50] System stage transitioned to: LOADED
+[2026-09-20 15:05:16] [INFO] [climora.dashboard.state:state.py:50] System stage transitioned to: VALIDATED
+[2026-09-20 15:05:16] [INFO] [climora:cleaning.py:118] Data cleaning complete: 1764 -> 1764 rows (1 actions logged)
+[2026-09-20 15:05:16] [INFO] [climora.dashboard.state:state.py:50] System stage transitioned to: FEATURES_READY
+[2026-09-20 15:05:16] [INFO] [climora.dashboard.state:state.py:50] System stage transitioned to: MODELS_TRAINED
+[2026-09-20 15:05:17] [INFO] [climora:isolation_forest.py:70] Anomaly detection complete: 89 anomalies detected (5.05% of 1764 records)
+[2026-09-20 15:05:17] [INFO] [climora.dashboard.state:state.py:50] System stage transitioned to: ANOMALY_READY
+[2026-09-20 15:05:17] [INFO] [climora.dashboard.state:state.py:50] System stage transitioned to: FULL_ANALYSIS_READY
+[2026-09-20 15:05:17] [INFO] [climora.dashboard.state:state.py:134] Application state bootstrap completed successfully.
+[2026-09-20 15:29:23] [INFO] [climora:download_data.py:27] === Starting CLIMORA AI Data Ingestion (offline=True, verify_only=False) ===
+[2026-09-20 15:29:23] [INFO] [climora:nasa_giss.py:27] Reading NASA GISTEMP from cache: C:\Users\Admin\Downloads\CLIMORA\data\raw\gistemp\gistemp_raw.csv
+[2026-09-20 15:29:24] [INFO] [climora:manifest.py:34] Manifest updated at C:\Users\Admin\Downloads\CLIMORA\data\manifest.json
+[2026-09-20 15:29:24] [INFO] [climora:noaa_gml.py:29] Reading NOAA CO2 from cache: C:\Users\Admin\Downloads\CLIMORA\data\raw\noaa\noaa_co2_raw.csv
+[2026-09-20 15:29:24] [INFO] [climora:manifest.py:34] Manifest updated at C:\Users\Admin\Downloads\CLIMORA\data\manifest.json
+[2026-09-20 15:29:24] [INFO] [climora:ersst_nino.py:28] Reading CPC ERSST Nino from cache: C:\Users\Admin\Downloads\CLIMORA\data\raw\noaa\ersst_nino_raw.ascii
+[2026-09-20 15:29:24] [INFO] [climora:manifest.py:34] Manifest updated at C:\Users\Admin\Downloads\CLIMORA\data\manifest.json
+[2026-09-20 15:29:24] [INFO] [climora:geojson.py:37] Reading GeoJSON 110m from cache: C:\Users\Admin\Downloads\CLIMORA\data\raw\geo\natural_earth_110m.geojson
+[2026-09-20 15:29:24] [INFO] [climora:manifest.py:34] Manifest updated at C:\Users\Admin\Downloads\CLIMORA\data\manifest.json
+[2026-09-20 15:29:24] [INFO] [climora:open_meteo.py:55] Reading Open-Meteo station 'Chennai' from cache: C:\Users\Admin\Downloads\CLIMORA\data\raw\openmeteo\openmeteo_chennai.json
+[2026-09-20 15:29:24] [INFO] [climora:manifest.py:34] Manifest updated at C:\Users\Admin\Downloads\CLIMORA\data\manifest.json
+[2026-09-20 15:30:32] [INFO] [climora:train_models.py:26] === Starting CLIMORA AI Model Training (model_type=all) ===
+[2026-09-20 15:30:32] [INFO] [climora:nasa_giss.py:27] Reading NASA GISTEMP from cache: C:\Users\Admin\Downloads\CLIMORA\data\raw\gistemp\gistemp_raw.csv
+[2026-09-20 15:30:32] [INFO] [climora:noaa_gml.py:29] Reading NOAA CO2 from cache: C:\Users\Admin\Downloads\CLIMORA\data\raw\noaa\noaa_co2_raw.csv
+[2026-09-20 15:30:32] [INFO] [climora:ersst_nino.py:28] Reading CPC ERSST Nino from cache: C:\Users\Admin\Downloads\CLIMORA\data\raw\noaa\ersst_nino_raw.ascii
+[2026-09-20 15:30:32] [INFO] [climora:train_models.py:37] Chronological Split: Train=1440, Val=180, Test=115
+[2026-09-20 15:30:32] [INFO] [climora:artifacts.py:27] Saved metrics for seasonal_naive to C:\Users\Admin\Downloads\CLIMORA\models\metrics\seasonal_naive_metrics.json
+[2026-09-20 15:30:32] [INFO] [climora:artifacts.py:27] Saved metrics for climatology to C:\Users\Admin\Downloads\CLIMORA\models\metrics\climatology_metrics.json
+[2026-09-20 15:30:32] [INFO] [climora:train_models.py:70] Training XGBoost Climate Model...
+[2026-09-20 15:30:33] [INFO] [climora:xgboost_model.py:84] XGBoost climate model training complete.
+[2026-09-20 15:30:33] [INFO] [climora:xgboost_model.py:122] Saved XGBoost model artifacts to C:\Users\Admin\Downloads\CLIMORA\models\trained
+[2026-09-20 15:30:33] [INFO] [climora:artifacts.py:27] Saved metrics for xgboost to C:\Users\Admin\Downloads\CLIMORA\models\metrics\xgboost_metrics.json
+[2026-09-20 15:30:33] [INFO] [climora:train_models.py:93] Training LightGBM Climate Model...
+[2026-09-20 15:30:33] [INFO] [climora:lightgbm_model.py:91] LightGBM climate model training complete.
+[2026-09-20 15:30:33] [INFO] [climora:lightgbm_model.py:134] Saved LightGBM model artifacts to C:\Users\Admin\Downloads\CLIMORA\models\trained
+[2026-09-20 15:30:33] [INFO] [climora:artifacts.py:27] Saved metrics for lightgbm to C:\Users\Admin\Downloads\CLIMORA\models\metrics\lightgbm_metrics.json
+[2026-09-20 15:30:35] [INFO] [climora:train_models.py:115] Training PyTorch LSTM Climate Model...
+[2026-09-20 15:30:46] [INFO] [climora:lstm_model.py:159] LSTM early stopping triggered at epoch 11
+[2026-09-20 15:30:46] [INFO] [climora:lstm_model.py:170] PyTorch LSTM training complete.
+[2026-09-20 15:30:46] [INFO] [climora:lstm_model.py:237] Saved PyTorch LSTM model artifacts to C:\Users\Admin\Downloads\CLIMORA\models\trained
+[2026-09-20 15:30:46] [INFO] [climora:artifacts.py:27] Saved metrics for lstm to C:\Users\Admin\Downloads\CLIMORA\models\metrics\lstm_metrics.json

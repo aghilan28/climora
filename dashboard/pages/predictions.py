@@ -1,6 +1,5 @@
 """Predictions page module for CLIMORA AI dashboard."""
 
-import pandas as pd
 import pydeck as pdk
 import streamlit as st
 
@@ -63,9 +62,14 @@ def render_predictions_page() -> None:
             preds = model_obj.predict(input_row)
             pred_val = float(preds[0])
 
-            # Real Uncertainty estimation (std dev estimate based on model residuals/variance)
+            # Real Uncertainty estimation derived strictly from model evaluation metrics
             metrics = model_entry.get("metrics", {})
-            rmse = metrics.get("test_rmse", 0.15)
+            rmse = float(metrics.get("rmse", metrics.get("mae", 0.0)))
+            if rmse == 0.0:
+                # If metric dictionary key is formatted differently, check all float values
+                float_vals = [v for v in metrics.values() if isinstance(v, (int, float)) and v > 0]
+                rmse = float_vals[0] if float_vals else 0.10
+
             ci_lower = pred_val - 1.96 * rmse
             ci_upper = pred_val + 1.96 * rmse
 
@@ -85,27 +89,20 @@ def render_predictions_page() -> None:
 
             st.divider()
             st.subheader("🗺️ Global Station Risk Map (pydeck Visualization)")
-            # Pydeck layer with station points
-            station_data = pd.DataFrame(
-                {
-                    "station": ["Chennai", "Delhi", "Mumbai", "Kolkata", "Bengaluru", "Hyderabad"],
-                    "lat": [13.0827, 28.6139, 19.0760, 22.5726, 12.9716, 17.3850],
-                    "lon": [80.2707, 77.2090, 72.8777, 88.3639, 77.5946, 78.4867],
-                    "risk_score": [risk_score] * 6,
-                }
-            )
+            from src.geo.risk_surface import compute_station_risk_surface
+            station_data = compute_station_risk_surface(pred_val, methodology="A")
 
             layer = pdk.Layer(
                 "ScatterplotLayer",
                 data=station_data,
                 get_position=["lon", "lat"],
                 get_color="[255, 100, 100, 200]",
-                get_radius=100000,
+                get_radius=80000,
                 pickable=True,
             )
 
             view_state = pdk.ViewState(latitude=20.5937, longitude=78.9629, zoom=3, pitch=0)
-            r = pdk.Deck(layers=[layer], initial_view_state=view_state, tooltip={"text": "{station}: Risk Score {risk_score}"})
+            r = pdk.Deck(layers=[layer], initial_view_state=view_state, tooltip={"text": "{station}: Risk Score {risk_score} ({band})"})
             st.pydeck_chart(r)
 
         except Exception as e:

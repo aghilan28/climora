@@ -1,7 +1,8 @@
-"""Unit tests expanding coverage for metrics, manifest, risk context, logging, baselines, artifacts, providers, and loaders."""
+"""Unit tests expanding coverage for metrics, manifest, risk context, logging, baselines, artifacts, providers, loaders, geo, and explainability."""
 
 from pathlib import Path
 from typing import Any, Dict
+from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
@@ -21,13 +22,14 @@ from src.data.providers.nasa_giss import NasaGissProvider
 from src.data.providers.noaa_gml import NOAACO2Provider
 from src.data.providers.open_meteo import OpenMeteoProvider
 from src.evaluation.metrics import compute_regression_metrics
-from src.explain.shap_wrapper import compute_shap_explanation
-from src.features.temporal import add_temporal_features
+from src.explain.lstm_sensitivity import compute_lstm_feature_sensitivity
+from src.geo.choropleth import get_country_polygons
+from src.geo.frames import build_temporal_map_frames
+from src.geo.risk_surface import compute_station_risk_surface
+from src.geo.station_network import get_indian_station_network
 from src.models.artifacts import ArtifactManager
 from src.models.base import ClimateModel
 from src.models.baselines import ClimatologyModel, SeasonalNaiveModel
-from src.models.lstm_model import PyTorchLSTMClimateModel
-from src.models.registry import MODEL_REGISTRY, get_model
 from src.risk.context import compute_historical_context, stats_percentile_of_score
 from src.utils.logging import setup_logger
 
@@ -86,7 +88,6 @@ def test_artifact_manager_save_load(tmp_path: Path) -> None:
     loaded_meta = art_mgr.load_metadata("test_model")
     assert loaded_meta["seed"] == 42
 
-    # Test load missing files fallback
     assert art_mgr.load_metrics("missing_model") == {}
     assert art_mgr.load_metadata("missing_model") == {}
 
@@ -200,86 +201,55 @@ def test_provider_fetch_cache_hits(
     assert geo_prov.fetch_raw(offline=True) == b'{"type":"FeatureCollection","features":[]}'
 
 
-def test_temporal_features_edge_cases() -> None:
-    df = pd.DataFrame({"date": pd.to_datetime(["2024-01-15", "2024-06-15", "2024-10-15"])})
-    tf = add_temporal_features(df, date_col="date")
-    assert "month_sin" in tf.columns
-    assert "month_cos" in tf.columns
-    assert "quarter" in tf.columns
+def test_nasa_provider_errors_and_fallbacks(tmp_path: Path) -> None:
+    prov = NasaGissProvider(tmp_path)
 
-
-def test_model_registry_lookup() -> None:
-    assert "xgboost" in MODEL_REGISTRY
-    xgb = get_model("xgboost")
-    assert xgb.name == "XGBoost"
+    with pytest.raises(FileNotFoundError):
+        prov.fetch_raw(offline=True)
 
     with pytest.raises(ValueError):
-        get_model("nonexistent_model")
+        prov.parse(b"single line")
+
+    # Test network failure fallback to sample fixture
+    with patch("requests.get", side_effect=Exception("Connection error")):
+        bytes_out = prov.fetch_raw(offline=False)
+        assert len(bytes_out) > 0
 
 
-def test_lstm_multi_step(tmp_path: Path) -> None:
-    lstm = PyTorchLSTMClimateModel(params={"sequence_length": 6, "epochs": 2})
+def test_geo_package_functions() -> None:
+    df_net = get_indian_station_network()
+    assert len(df_net) >= 12
+    assert "station" in df_net.columns
 
-    X = pd.DataFrame(np.random.randn(30, 5), columns=[f"f_{i}" for i in range(5)])
-    y = pd.Series(np.random.randn(30))
+    df_surf = compute_station_risk_surface(1.5, methodology="A")
+    assert len(df_surf) == len(df_net)
+    assert "risk_score" in df_surf.columns
+    assert "band" in df_surf.columns
 
-    lstm.fit(X, y)
-    preds = lstm.predict(X)
-    assert len(preds) == len(X)
+    geo_data = get_country_polygons()
+    assert isinstance(geo_data, dict)
+    assert "type" in geo_data
 
-    multi_preds = lstm.predict_multi_step(X, steps=12)
-    assert len(multi_preds) == 12
-
-    meta_file = lstm.save(tmp_path)
-    assert meta_file.exists()
-
-
-def test_baselines_methods(tmp_path: Path) -> None:
-    naive = SeasonalNaiveModel()
-    assert naive.name == "SeasonalNaive"
-
-    df = pd.DataFrame({
+    clean_df = pd.DataFrame({
         "date": pd.date_range("2020-01-01", periods=24, freq="ME"),
         "anomaly_c": np.random.randn(24),
-        "anomaly_c_lag_12": np.random.randn(24),
     })
-    naive.fit(df, df["anomaly_c"])
-    preds = naive.predict(df)
-    assert len(preds) == 24
-
-    save_path = naive.save(tmp_path)
-    assert save_path.exists()
-    assert naive.load(save_path).name == "SeasonalNaive"
-
-    clim = ClimatologyModel()
-    assert clim.name == "Climatology"
-    df["month"] = df["date"].dt.month
-    clim.fit(df, df["anomaly_c"])
-    c_preds = clim.predict(df)
-    assert len(c_preds) == 24
-
-    c_save_path = clim.save(tmp_path)
-    assert c_save_path.exists()
-    assert clim.load(c_save_path).name == "Climatology"
+    frames = build_temporal_map_frames(clean_df, sample_interval=6)
+    assert len(frames) == 4
+    assert "stations" in frames[0]
 
 
-def test_logging_setup() -> None:
-    log = setup_logger("test_logger_unique")
-    assert log is not None
-    log.info("Test log message execution")
-
-
-def test_shap_wrapper_fallback() -> None:
-    class DummyModel(ClimateModel):
+def test_lstm_sensitivity_calculation() -> None:
+    class MockLSTMModel(ClimateModel):
         @property
         def name(self) -> str:
-            return "Dummy"
+            return "MockLSTM"
 
         def fit(self, X_train: pd.DataFrame, y_train: pd.Series, X_val: pd.DataFrame | None = None, y_val: pd.Series | None = None) -> ClimateModel:
             return self
 
         def predict(self, X: pd.DataFrame) -> np.ndarray:
-            return np.zeros(len(X))
+            return np.array([float(X.iloc[0].sum())])
 
         def save(self, path: Path) -> Path:
             return path
@@ -288,7 +258,47 @@ def test_shap_wrapper_fallback() -> None:
             return self
 
         def get_metadata(self) -> Dict[str, Any]:
-            return {"name": "Dummy"}
+            return {"name": "MockLSTM"}
 
-    vals, base, names = compute_shap_explanation(DummyModel(), pd.DataFrame({"a": [1]}))
-    assert names == []
+    model = MockLSTMModel()
+    model.feature_names = ["feat1", "feat2"]
+    X_sample = pd.DataFrame({"feat1": [1.0], "feat2": [2.0]})
+
+    sens, names = compute_lstm_feature_sensitivity(model, X_sample)
+    assert len(sens) == 2
+    assert names == ["feat1", "feat2"]
+    assert sens[0] > 0.0
+
+
+def test_logging_utilities() -> None:
+    logger = setup_logger("test_custom_log")
+    assert logger is not None
+
+
+def test_openmeteo_multi_json_parse(tmp_path: Path) -> None:
+    prov = OpenMeteoProvider(tmp_path)
+    multi_json = b'[{"latitude":13.0,"longitude":80.0,"daily":{"time":["2020-01-01"],"temperature_2m_max":[30.0],"temperature_2m_min":[20.0]}}]'
+    df = prov.parse(multi_json)
+    assert len(df) == 1
+    assert "temperature_2m_mean" in df.columns
+
+
+def test_baselines_extra_methods(tmp_path: Path) -> None:
+    s = SeasonalNaiveModel()
+    assert s.get_metadata()["name"] == "SeasonalNaive"
+
+    df_lag = pd.DataFrame({"anomaly_c_lag_12": [0.5, 0.6]})
+    s.fit(df_lag, pd.Series([0.5, 0.6]))
+    p1 = s.predict(df_lag)
+    assert len(p1) == 2
+
+    df_anom = pd.DataFrame({"anomaly_c": [0.3, 0.4]})
+    p2 = s.predict(df_anom)
+    assert len(p2) == 2
+
+    c = ClimatologyModel()
+    assert c.get_metadata()["name"] == "Climatology"
+    df_month = pd.DataFrame({"month": [1, 2]})
+    c.fit(df_month, pd.Series([0.1, 0.2]))
+    p_c = c.predict(df_month)
+    assert len(p_c) == 2

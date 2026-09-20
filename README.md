@@ -48,19 +48,21 @@ Climate Data -> Ingestion -> Validation -> Cleaning -> Preprocessing -> EDA -> F
 | **License** | NASA Public Domain | NOAA Public Domain | NOAA NWS CPC Public Domain | Open-Meteo / Copernicus |
 | **Download Date** | 2026-09-20 | 2026-09-20 | 2026-09-20 | 2026-09-20 |
 | **Format** | CSV | CSV | ASCII (Fixed-width) | JSON API |
-| **Rows / Cols** | 1,752 / 4 | 822 / 7 | 918 / 8 | 31,412 per station / 11 |
-| **Temporal Range**| 1880-01 to 2026-08 | 1958-03 to 2026-08 | 1950-01 to 2026-06 | 1940-01-01 to 2025-12-31 |
+| **Rows / Cols** | 1,740 / 4 | 822 / 11 | 918 / 11 | 366 per station / 14 |
+| **Temporal Range**| 1880-01 to 2024-12 | 1958-03 to 2024-08 | 1950-01 to 2026-06 | 1940-01-01 to 2025-12-31 |
 | **Coverage** | Global Mean | Mauna Loa Observatory | Niño 3.4 Region | 12 Indian Stations Panel |
 | **Variables** | `anomaly_c` (°C) | `co2_ppm`, deseasonalized | `nino34_sst`, `nino34_anom` | Temp, Precip, RH, Radiation |
 | **Target Variable**| Global Temperature Anomaly | CO₂ forcing covariate | ENSO forcing covariate | Station extremes |
-| **Missing Values**| 4 cells (`***` sentinel) | Sentinels (`-9.99`, `-1`) | 0 missing | 0 missing |
+| **Missing Values**| Sentinels (`***`, `****`) | Missing values handled | 0 missing | 0 missing |
 | **Limitations** | Baseline 1951–1980 | Single observatory | Regional SST summary | Reanalysis product (not raw satellite) |
 
 ## 8. Installation
 ```bash
-git clone https://github.com/climora-ai/climora-ai.git
-cd climora-ai
+git clone https://github.com/aghilan28/climora.git
+cd climora
 pip install -r requirements.txt
+pip install -r requirements-dev.txt
+pip install -e .
 ```
 
 ## 9. Environment Setup
@@ -87,15 +89,17 @@ python scripts/train_models.py
 Trained model artifacts and metadata will be persisted to `models/trained/`, `models/metadata/`, and `models/metrics/`.
 
 ## 12. Model Evaluation
-Evaluated test performance (2015–2025 Test Window):
+Evaluated test performance on real NASA GISTEMP v4 dataset (Chronological Test Split):
 
-| Model Name | MAE (°C) | RMSE (°C) | MAPE (%) | $R^2$ | Skill Score vs Seasonal Naive |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Seasonal Naive Baseline** | **0.0814** | **0.1032** | **7.75** | **-0.79** | **0.0000** |
-| **PyTorch LSTM** | 0.1877 | 0.2022 | 17.28 | -5.85 | -0.9596 |
-| **LightGBM** | 0.1927 | 0.2086 | 17.73 | -6.29 | -1.0212 |
-| **XGBoost** | 0.2534 | 0.2717 | 23.41 | -11.37 | -1.6326 |
-| **Climatology Baseline** | 0.7273 | 0.7313 | 68.45 | -88.62 | -6.0861 |
+| Model Name | MAE (°C) | RMSE (°C) | $R^2$ | Skill Score vs Seasonal Naive |
+| :--- | :--- | :--- | :--- | :--- |
+| **Seasonal Naive Baseline** | **0.1680** | **0.2180** | **-0.5025** | **0.0000** |
+| **PyTorch LSTM** | 0.4304 | 0.4563 | -5.5865 | -1.0933 |
+| **LightGBM** | 0.4361 | 0.4633 | -5.7894 | -1.1253 |
+| **XGBoost** | 0.5164 | 0.5394 | -8.2027 | -1.4744 |
+| **Climatology Baseline** | 1.0405 | 1.0553 | -34.2198 | -3.8407 |
+
+> **Scientific Insight**: On monthly global mean land-ocean temperature anomaly nowcasting, the 12-month Seasonal Naive persistence baseline achieves superior performance (MAE 0.1680 °C) compared to complex ML regression models (MAE ~0.43–0.51 °C). This empirical result demonstrates that month-over-month noise and strong annual persistence dominate short-term global mean anomaly dynamics.
 
 ## 13. Dashboard Usage
 Navigating the left sidebar allows access to 10 specialized pages:
@@ -104,7 +108,7 @@ Navigating the left sidebar allows access to 10 specialized pages:
 3. **Climate Analysis**: Decomposition, trend fitting, seasonality analysis.
 4. **Feature Engineering**: Feature registry inspection, trailing window preview.
 5. **Predictions**: Interactive multi-model prediction interface with uncertainty intervals.
-6. **Risk Analysis**: Empirical vs Literature risk classification maps.
+6. **Risk Analysis**: Dual methodology selection (Empirical quantile vs Parisian +1.5°C/+2.0°C policy offset) with risk maps.
 7. **Anomaly Detection**: Isolation Forest score rankings and station timelines.
 8. **Model Performance**: Metrics matrix, residual plots, test slice overlays.
 9. **Explainability**: SHAP waterfalls and LSTM sensitivity analysis.
@@ -116,7 +120,9 @@ climora-ai/
 ├── app.py                        # Streamlit main entrypoint
 ├── .streamlit/config.toml        # Server & theme configuration
 ├── requirements.txt              # Dependency specifications
+├── requirements-dev.txt          # Test and dev specifications
 ├── pyproject.toml                # Tool configurations (ruff, mypy, pytest)
+├── setup.py                      # Package configuration
 ├── Makefile                      # Build automation tasks
 ├── README.md                     # Project documentation
 ├── LICENSE                       # MIT License

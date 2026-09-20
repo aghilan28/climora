@@ -45,7 +45,7 @@
       "missing_cells": 0
     },
     "Natural Earth GeoJSON 110m": {
-      "dataset_name": "Natural Earth GeoJSON 110m",
+      "dataset_name": "Natural Earth GeoJSON",
       "source_url": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson",
       "sha256": "6866c877d39cba9c357620878839b336d569f8c662d3cfab4cb1dbe2d39c977f",
       "raw_byte_count": 838726,
@@ -88,9 +88,9 @@
     "NASA GISS GISTEMP v4": {
       "dataset_name": "NASA GISS GISTEMP v4",
       "source_url": "https://data.giss.nasa.gov/gistemp/tabledata_v4/GLB.Ts+dSST.csv",
-      "sha256": "906df88b1e76b8a0d7a9114a5a48bf9612a7834d6414dee3917837fd9d0b412f",
-      "raw_byte_count": 13009,
-      "rows": 1764,
+      "sha256": "737ddcdc78e8ec488d8eaafa316af6c1489d5cf2b4afa054056e6a4ddc3c5001",
+      "raw_byte_count": 12693,
+      "rows": 1740,
       "columns": [
         "date",
         "year",
@@ -98,7 +98,7 @@
         "anomaly_c"
       ],
       "column_count": 4,
-      "missing_cells": 4
+      "missing_cells": 5
     }
   }
 }

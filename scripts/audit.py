@@ -1,4 +1,5 @@
 """Programmatic final audit script for CLIMORA AI platform (PART 9 checklist)."""
+# ruff: noqa: E402
 
 import re
 import subprocess
@@ -6,6 +7,8 @@ import sys
 from pathlib import Path
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
 
 
 def check_item(description: str, condition: bool, details: str = "") -> bool:
