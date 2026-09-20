@@ -1,0 +1,104 @@
+{
+  "datasets": {
+    "NOAA GML Mauna Loa CO2": {
+      "dataset_name": "NOAA GML Mauna Loa CO2",
+      "source_url": "https://gml.noaa.gov/webdata/ccgg/trends/co2/co2_mm_mlo.csv",
+      "sha256": "dcf0198658c87ebb5e3b2ce807fe3a52e1d5f000aa0479fb1bf334afb7adde4d",
+      "raw_byte_count": 38732,
+      "rows": 822,
+      "columns": [
+        "year",
+        "month",
+        "decimal date",
+        "average",
+        "deseasonalized",
+        "ndays",
+        "sdev",
+        "unc",
+        "date",
+        "co2_ppm",
+        "co2_deseasonalized_ppm"
+      ],
+      "column_count": 11,
+      "missing_cells": 1366
+    },
+    "CPC ERSSTv5 Nino Indices": {
+      "dataset_name": "CPC ERSSTv5 Nino Indices",
+      "source_url": "https://www.cpc.ncep.noaa.gov/data/indices/ersst5.nino.mth.91-20.ascii",
+      "sha256": "bedcd0683c07f7ccb2ae358a90cb39d57413dcc8881027e0c30a1811f6d58012",
+      "raw_byte_count": 67087,
+      "rows": 918,
+      "columns": [
+        "year",
+        "month",
+        "nino12_sst",
+        "nino12_anom",
+        "nino3_sst",
+        "nino3_anom",
+        "nino4_sst",
+        "nino4_anom",
+        "nino34_sst",
+        "nino34_anom",
+        "date"
+      ],
+      "column_count": 11,
+      "missing_cells": 0
+    },
+    "Natural Earth GeoJSON 110m": {
+      "dataset_name": "Natural Earth GeoJSON 110m",
+      "source_url": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_admin_0_countries.geojson",
+      "sha256": "6866c877d39cba9c357620878839b336d569f8c662d3cfab4cb1dbe2d39c977f",
+      "raw_byte_count": 838726,
+      "rows": 177,
+      "columns": [
+        "iso_a3",
+        "name",
+        "type",
+        "geometry_type"
+      ],
+      "column_count": 4,
+      "missing_cells": 0
+    },
+    "Open-Meteo ERA5 (Chennai)": {
+      "dataset_name": "Open-Meteo ERA5 Reanalysis",
+      "source_url": "https://archive-api.open-meteo.com/v1/archive",
+      "sha256": "77111125ed4546c8df3fc4dae3f055e7c9db25e74a1a1f177fead0b707205f24",
+      "raw_byte_count": 19033,
+      "rows": 366,
+      "columns": [
+        "temperature_2m_max",
+        "temperature_2m_min",
+        "precipitation_sum",
+        "relative_humidity_2m_mean",
+        "cloud_cover_mean",
+        "soil_temperature_0_to_7cm_mean",
+        "shortwave_radiation_sum",
+        "et0_fao_evapotranspiration",
+        "date",
+        "requested_lat",
+        "requested_lon",
+        "elevation",
+        "temperature_2m_mean",
+        "station_name"
+      ],
+      "column_count": 14,
+      "missing_cells": 0,
+      "station_name": "Chennai"
+    },
+    "NASA GISS GISTEMP v4": {
+      "dataset_name": "NASA GISS GISTEMP v4",
+      "source_url": "https://data.giss.nasa.gov/gistemp/tabledata_v4/GLB.Ts+dSST.csv",
+      "sha256": "906df88b1e76b8a0d7a9114a5a48bf9612a7834d6414dee3917837fd9d0b412f",
+      "raw_byte_count": 13009,
+      "rows": 1764,
+      "columns": [
+        "date",
+        "year",
+        "month",
+        "anomaly_c"
+      ],
+      "column_count": 4,
+      "missing_cells": 4
+    }
+  }
+}

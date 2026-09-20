@@ -1,0 +1,19 @@
+methodology_a:
+  description: "Empirical distribution-based quantiles of train set anomalies"
+  quantiles:
+    low: 0.50
+    moderate: 0.75
+    high: 0.90
+    extreme: 0.97
+
+methodology_b:
+  description: "Literature-anchored pre-industrial thresholds (+1.5°C and +2.0°C)"
+  gistemp_to_pre_industrial_offset_c: 0.25
+  thresholds_pre_industrial:
+    low: 0.50
+    moderate: 1.00
+    high: 1.50
+    extreme: 2.00
+
+persistence_weight: 0.2
+rolling_exceedance_window: 12

@@ -1,0 +1,54 @@
+dataset:
+  name: "NASA GISS GISTEMP v4 Global Monthly Temperature Anomaly"
+  primary_key: "date"
+  target_col: "anomaly_c"
+  temporal_frequency: "MS" # Month Start
+  baseline_period: "1951-1980"
+  split:
+    train_start: "1880-01-01"
+    train_end: "1999-12-01"
+    val_start: "2000-01-01"
+    val_end: "2014-12-01"
+    test_start: "2015-01-01"
+    test_end: "2025-12-01"
+  partial_years_excluded: [2026]
+
+station_panel:
+  region: "India"
+  stations:
+    - name: "Chennai"
+      lat: 13.0827
+      lon: 80.2707
+    - name: "Delhi"
+      lat: 28.6139
+      lon: 77.2090
+    - name: "Mumbai"
+      lat: 19.0760
+      lon: 72.8777
+    - name: "Kolkata"
+      lat: 22.5726
+      lon: 88.3639
+    - name: "Bengaluru"
+      lat: 12.9716
+      lon: 77.5946
+    - name: "Hyderabad"
+      lat: 17.3850
+      lon: 78.4867
+    - name: "Ahmedabad"
+      lat: 23.0225
+      lon: 72.5714
+    - name: "Jaipur"
+      lat: 26.9124
+      lon: 75.7873
+    - name: "Lucknow"
+      lat: 26.8467
+      lon: 80.9462
+    - name: "Guwahati"
+      lat: 26.1445
+      lon: 91.7362
+    - name: "Srinagar"
+      lat: 34.0837
+      lon: 74.7973
+    - name: "Thiruvananthapuram"
+      lat: 8.5241
+      lon: 76.9366

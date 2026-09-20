@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "climora-ai"
+version = "1.0.0"
+description = "Advanced Climate Intelligence Platform"
+readme = "README.md"
+requires-python = ">=3.11"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = false
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_any_generics = false
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = [
+    "plotly.*",
+    "pydeck.*",
+    "shap.*",
+    "scipy.*",
+    "statsmodels.*",
+    "lightgbm.*",
+    "xgboost.*",
+    "numpy.*"
+]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+markers = [
+    "network: marks tests that require external network access",
+    "slow: marks tests that take more than 5 seconds",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::UserWarning",
+]

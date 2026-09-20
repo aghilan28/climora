@@ -1,0 +1,14 @@
+lags: [1, 3, 6, 12, 24, 60]
+rolling_windows: [12, 24, 60]
+rolling_stats: ["mean", "std", "min", "max"]
+differences: [1]
+calendar:
+  include_month_sin_cos: true
+  include_quarter: true
+  include_seasons: true # DJF, MAM, JJA, SON
+covariates:
+  co2:
+    lags: [1, 12]
+    include_rate_of_change: true
+  nino34:
+    lags: [1, 6, 12]

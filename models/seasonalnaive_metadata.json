@@ -1,0 +1,5 @@
+{
+  "name": "SeasonalNaive",
+  "type": "baseline",
+  "description": "Predicts next month anomaly equal to same month 1 year prior y(t-12)"
+}
