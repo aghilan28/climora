@@ -2,7 +2,6 @@
 # ruff: noqa: E402
 
 import argparse
-import json
 import sys
 from pathlib import Path
 from typing import Any, Dict
@@ -13,6 +12,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 import yaml
+
 from config.settings import settings
 from src.data.loaders import load_ersst_nino_data, load_gistemp_data, load_noaa_co2_data
 from src.evaluation.metrics import compute_regression_metrics
@@ -26,8 +26,6 @@ from src.utils.logging import logger
 
 def run_training(model_type: str = "all", pin_check: bool = False) -> Dict[str, Any]:
     """Train selected model(s) on chronological split and persist artifacts."""
-    logger.info("=== Starting CLIMORA AI Model Training (model_type=%s, pin_check=%s) ===", model_type, pin_check)
-
     # 1. Load Data & Build Feature Matrix
     try:
         df_gistemp, entry_gistemp = load_gistemp_data(offline=False)
@@ -43,14 +41,19 @@ def run_training(model_type: str = "all", pin_check: bool = False) -> Dict[str, 
     pinned_sha = ""
     if data_yaml_path.exists():
         data_cfg = yaml.safe_load(data_yaml_path.read_text(encoding="utf-8"))
-        pinned_sha = data_cfg.get("gistemp", {}).get("pinned_sha256", "")
+        if isinstance(data_cfg, dict):
+            pinned_sha = data_cfg.get("dataset", {}).get("pinned_sha256", "")
 
     current_sha = entry_gistemp.get("sha256", "")
     if pin_check:
-        if pinned_sha and current_sha != pinned_sha:
+        if not pinned_sha or len(pinned_sha) != 64:
+            print("PIN CHECK FAILED: Pinned sha256 is missing or invalid in config/data.yaml")
+            sys.exit(1)
+        if current_sha != pinned_sha:
             print(f"PIN CHECK FAILED: disk GISTEMP sha256 ({current_sha}) != pinned sha256 ({pinned_sha})")
             sys.exit(1)
-        print(f"PIN CHECK PASSED: disk GISTEMP sha256 matches pinned {current_sha}")
+        print(f"PIN CHECK PASSED: disk GISTEMP sha256 ({current_sha}) matches pinned sha256 ({pinned_sha})")
+        sys.exit(0)
 
     df_feats = build_feature_matrix(df_gistemp, df_co2, df_nino)
 

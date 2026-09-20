@@ -39,7 +39,7 @@ def test_warm_prediction_latency() -> None:
     if path.exists():
         xgb.load(path)
     else:
-        pytest.skip("xgb_model.json not found")
+        xgb.fit(feat_df.dropna().head(50), feat_df.dropna().head(50)["anomaly_c"])
 
     feature_cols = [c for c in feat_df.columns if c not in ["date", "year", "anomaly_c"]]
     sample = feat_df[feature_cols].dropna().head(10)

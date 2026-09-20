@@ -93,7 +93,7 @@ def test_codebase_anti_cheat_scan() -> None:
     """Scan src, dashboard, app.py, and scripts for hardcoded anti-cheat violations."""
     paths_to_scan = [Path("src"), Path("dashboard"), Path("app.py"), Path("scripts")]
     violations = run_anti_cheat_scanner(paths_to_scan)
-    assert not violations, f"Anti-cheat violations found in codebase:\n" + "\n".join(violations)
+    assert not violations, "Anti-cheat violations found in codebase:\n" + "\n".join(violations)
 
 
 def test_scanner_detects_planted_fakes(tmp_path: Path) -> None:

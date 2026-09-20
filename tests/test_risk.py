@@ -1,7 +1,7 @@
 """Unit tests for climate risk classification engine."""
 
-import pytest
 import pandas as pd
+import pytest
 
 from src.data.providers.nasa_giss import NasaGissProvider
 from src.risk.bands import RiskBand

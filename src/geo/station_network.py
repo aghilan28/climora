@@ -1,9 +1,11 @@
 """Indian Climate Station Network module for spatial climate analysis."""
 
 import json
-from pathlib import Path
 from typing import Any, Dict, List
+
+import numpy as np
 import pandas as pd
+
 from config.settings import settings
 from src.utils.logging import logger
 
@@ -23,6 +25,17 @@ INDIAN_STATION_GEOGRAPHY: List[Dict[str, Any]] = [
 ]
 
 
+def detrend_series(series: pd.Series) -> pd.Series:
+    """Detrend a pandas series using linear regression residuals."""
+    s_clean = series.dropna()
+    if len(s_clean) < 2:
+        return series
+    x = np.arange(len(s_clean))
+    slope, intercept = np.polyfit(x, s_clean.values, 1)
+    trend = slope * x + intercept
+    return pd.Series(s_clean.values - trend, index=s_clean.index)
+
+
 def load_station_amplification_factors() -> Dict[str, float]:
     """Load empirically computed station amplification factors from data/processed artifact."""
     factor_path = settings.base_dir / "data" / "processed" / "station_amplification.json"
@@ -31,7 +44,16 @@ def load_station_amplification_factors() -> Dict[str, float]:
         raise FileNotFoundError(f"Empirical station amplification artifact missing: {factor_path}")
 
     data = json.loads(factor_path.read_text(encoding="utf-8"))
-    return {k: float(v) for k, v in data.items()}
+    factors = data.get("factors", data)
+
+    expected_stations = [st["station"] for st in INDIAN_STATION_GEOGRAPHY]
+    missing = [st for st in expected_stations if st not in factors]
+    if missing:
+        raise ValueError(
+            f"Station amplification artifact at {factor_path} is missing {len(missing)} required stations: {missing}"
+        )
+
+    return {k: float(v) for k, v in factors.items()}
 
 
 def get_indian_station_network() -> pd.DataFrame:
@@ -39,5 +61,9 @@ def get_indian_station_network() -> pd.DataFrame:
     df = pd.DataFrame(INDIAN_STATION_GEOGRAPHY)
     factors = load_station_amplification_factors()
 
-    df["region_factor"] = df["station"].map(factors).fillna(1.0)
+    df["region_factor"] = df["station"].map(factors)
+    if df["region_factor"].isna().any():
+        missing_st = df.loc[df["region_factor"].isna(), "station"].tolist()
+        raise ValueError(f"Missing station amplification factors for stations: {missing_st}")
+
     return df

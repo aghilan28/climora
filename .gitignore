@@ -33,10 +33,14 @@ env/
 
 # Data & Models (never commit large raw files or trained binaries)
 data/raw/
+!data/raw/geo/natural_earth_110m.geojson
 data/processed/
+!data/processed/station_amplification.json
+!data/processed/scanner_selftest_passed.marker
 models/trained/
-models/metrics/
-models/metadata/
+!models/metrics/
+!models/metadata/
+!models/training_results.json
 
 # Environment Variables & Secrets
 .env

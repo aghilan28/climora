@@ -92,13 +92,13 @@ Trained model artifacts and metadata will be persisted to `models/trained/`, `mo
 ## 12. Model Evaluation
 Evaluated test performance on pinned GISTEMP snapshot `737ddcdc78e8ec488d8eaafa316af6c1489d5cf2b4afa054056e6a4ddc3c5001` (Realised Test Window: `2015-01 .. 2024-07`, `n_test=115` months):
 
-| Model Name | MAE (°C) | RMSE (°C) | $R^2$ | Skill Score vs Seasonal Naive |
+| Model Name | MAE (°C) | RMSE (°C) | Skill Score vs Seasonal Naive | $h=12$ Horizon Skill |
 | :--- | :--- | :--- | :--- | :--- |
-| **Seasonal Naive Baseline** | **0.1680** | **0.2180** | **-0.5025** | **0.0000** |
-| **PyTorch LSTM** | 0.3649 | 0.3961 | -3.9622 | -0.8170 |
-| **LightGBM** | 0.4348 | 0.4634 | -5.7915 | -1.1257 |
-| **XGBoost** | 0.5098 | 0.5353 | -8.0643 | -1.4557 |
-| **Climatology Baseline** | 1.0405 | 1.0553 | -34.2198 | -3.8407 |
+| **Seasonal Naive Baseline** | **0.1680** | **0.2180** | **0.0000** | **0.0000** |
+| **PyTorch LSTM** | 0.4428 | 0.4662 | -1.1383 | -1.5418 |
+| **LightGBM** | 0.4472 | 0.4734 | -1.1715 | -1.6646 |
+| **XGBoost** | 0.4929 | 0.5172 | -1.3726 | -1.7768 |
+| **Climatology Baseline** | 1.0402 | 1.0553 | -3.8409 | -3.9006 |
 
 > **Scientific Insight**: On monthly global mean land-ocean temperature anomaly nowcasting, the 12-month Seasonal Naive persistence baseline achieves superior performance (MAE 0.1680 °C) compared to complex ML regression models (MAE ~0.43–0.51 °C). This empirical result demonstrates that month-over-month noise and strong annual persistence dominate short-term global mean anomaly dynamics.
 

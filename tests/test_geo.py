@@ -1,7 +1,6 @@
 """Gate tests for spatial geo package, choropleth layer, station network, and time scrubber."""
 
 from pathlib import Path
-import pytest
 
 from src.geo.choropleth import get_country_polygons
 from src.geo.station_network import get_indian_station_network
@@ -12,7 +11,7 @@ def test_station_network_no_literal_region_factors() -> None:
     df_net = get_indian_station_network()
     assert "station" in df_net.columns
     assert "region_factor" in df_net.columns
-    
+
     # Verify no float literal list is assigned directly in station_network.py source
     src_file = Path("src/geo/station_network.py")
     content = src_file.read_text(encoding="utf-8")
@@ -36,8 +35,9 @@ def test_risk_page_contains_geojson_layer_and_scrubber() -> None:
 
 def test_temporal_map_frames_non_empty() -> None:
     """Ensure build_temporal_map_frames produces valid non-empty historical snapshot frames."""
-    import pandas as pd
     import numpy as np
+    import pandas as pd
+
     from src.geo.frames import build_temporal_map_frames
 
     df = pd.DataFrame({

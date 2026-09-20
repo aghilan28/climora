@@ -5,7 +5,6 @@ import pandas as pd
 import pytest
 
 from src.models.xgboost_model import XGBoostClimateModel
-from src.models.lightgbm_model import LightGBMClimateModel
 
 
 def test_uncertainty_band_width_varies_across_rows() -> None:

@@ -2,7 +2,6 @@
 # ruff: noqa: E402
 
 import json
-import re
 import subprocess
 import sys
 from pathlib import Path
@@ -140,15 +139,16 @@ def main() -> None:
         "Literal 'region_factor' key found in station_network.py",
     )
 
-    # Check 5: Choropleth & PyDeck PolygonLayer present in risk.py
+    # Check 5: Choropleth & PyDeck GeoJsonLayer with data-bound fill present in risk.py
     risk_file = ROOT_DIR / "dashboard" / "pages" / "risk.py"
     risk_content = risk_file.read_text(encoding="utf-8") if risk_file.exists() else ""
     geo_exists = (ROOT_DIR / "src" / "geo" / "choropleth.py").exists()
     has_poly = "GeoJsonLayer" in risk_content or "PolygonLayer" in risk_content
+    is_data_bound = "properties.fill_color" in risk_content and "[70, 130, 180, 80]" not in risk_content
     passed &= check_item(
-        "PolygonLayer/GeoJsonLayer present in dashboard/pages/risk.py and choropleth file exists",
-        has_poly and geo_exists,
-        f"GeoJsonLayer present: {has_poly}, choropleth file exists: {geo_exists}",
+        "PolygonLayer/GeoJsonLayer with data-bound fill present in dashboard/pages/risk.py and choropleth file exists",
+        has_poly and geo_exists and is_data_bound,
+        f"GeoJsonLayer present: {has_poly}, choropleth file exists: {geo_exists}, data-bound: {is_data_bound}",
     )
 
     # Check 6: "Best Model" badge condition
@@ -185,7 +185,7 @@ def main() -> None:
     # Check 9: Requirements pinning (zero >= lines)
     req_file = ROOT_DIR / "requirements.txt"
     req_lines = req_file.read_text(encoding="utf-8").splitlines() if req_file.exists() else []
-    gte_lines = [l for l in req_lines if ">=" in l and not l.strip().startswith("#")]
+    gte_lines = [line for line in req_lines if ">=" in line and not line.strip().startswith("#")]
     passed &= check_item(
         "requirements.txt contains zero '>=' lines (all pinned with '==')",
         len(gte_lines) == 0,

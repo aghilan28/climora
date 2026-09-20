@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 from typing import Optional
+
 import pandas as pd
 
 
@@ -39,7 +40,7 @@ def make_chronological_split(
 
     train_df = df_valid[df_valid[date_col] <= train_end].copy()
     val_df = df_valid[(df_valid[date_col] > train_end) & (df_valid[date_col] <= val_end)].copy()
-    
+
     if test_end:
         test_df = df_valid[(df_valid[date_col] > val_end) & (df_valid[date_col] <= test_end)].copy()
     else:
@@ -56,9 +57,26 @@ def make_chronological_split(
         if len(test_df) == 0:
             test_df = val_df.copy()
 
+    known_target_cols = {
+        "anomaly_c",
+        "anomaly_c_h12",
+        "target_anomaly_c",
+        "target_anomaly_c_h12",
+    } | {
+        c for c in df_valid.columns
+        if c.startswith("target_") or c.startswith("anomaly_c_h") or c.startswith("target__")
+    }
+
+    helper_cols = {date_col, "year", "month", "date", "is_train_slice", "partial_years_excluded"}
+
     feature_cols = [
-        c for c in df_valid.columns if c not in [date_col, target_col, "year"]
+        c for c in df_valid.columns if c not in helper_cols and c not in known_target_cols
     ]
+
+    # Runtime assertion: reject if target or target-derived columns are present in feature_cols
+    for col in feature_cols:
+        if col == target_col or col in known_target_cols:
+            raise ValueError(f"Future leakage error: target column '{col}' present in feature_cols!")
 
     realised_start = pd.to_datetime(test_df[date_col].iloc[0]).strftime("%Y-%m") if len(test_df) > 0 else ""
     realised_end = pd.to_datetime(test_df[date_col].iloc[-1]).strftime("%Y-%m") if len(test_df) > 0 else ""

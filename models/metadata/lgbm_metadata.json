@@ -1,0 +1,34 @@
+{
+  "name": "LightGBM",
+  "params": {
+    "n_estimators": 10,
+    "random_state": 42
+  },
+  "feature_names": [
+    "quarter",
+    "month_sin",
+    "month_cos",
+    "anomaly_c_lag_1",
+    "anomaly_c_lag_3",
+    "anomaly_c_lag_6",
+    "anomaly_c_lag_12",
+    "anomaly_c_lag_24",
+    "anomaly_c_lag_60",
+    "anomaly_c_roll_mean_12",
+    "anomaly_c_roll_std_12",
+    "anomaly_c_roll_min_12",
+    "anomaly_c_roll_max_12",
+    "anomaly_c_roll_mean_24",
+    "anomaly_c_roll_std_24",
+    "anomaly_c_roll_min_24",
+    "anomaly_c_roll_max_24",
+    "anomaly_c_roll_mean_60",
+    "anomaly_c_roll_std_60",
+    "anomaly_c_roll_min_60",
+    "anomaly_c_roll_max_60",
+    "anomaly_c_diff_1",
+    "anomaly_c_diff_12"
+  ],
+  "trained_at": "2026-09-20T17:09:27.750634+00:00",
+  "best_iteration": 0
+}

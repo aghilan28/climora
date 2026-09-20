@@ -2,6 +2,7 @@
 
 from pathlib import Path
 from unittest.mock import patch
+
 import pytest
 import requests
 
@@ -16,9 +17,11 @@ def test_no_cache_poisoning_on_fetch_failure(tmp_path: Path) -> None:
     # Ensure no cache file exists initially
     assert not cache_file.exists()
 
-    with patch("requests.get", side_effect=requests.RequestException("Simulated network failure")):
-        with pytest.raises((RuntimeError, requests.RequestException)):
+    with patch("src.data.providers.nasa_giss.requests.Session.get") as mock_get:
+        mock_get.side_effect = requests.RequestException("Simulated network failure")
+        with pytest.raises(RuntimeError):
             prov.fetch_raw(offline=False)
+        mock_get.assert_called_once()
 
     # Cache file MUST NOT be written on fetch failure
     assert not cache_file.exists(), "Cache file was written despite network fetch failure!"

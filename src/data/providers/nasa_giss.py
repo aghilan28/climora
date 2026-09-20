@@ -1,6 +1,7 @@
 """NASA GISS GISTEMP v4 dataset provider."""
 
 import io
+
 import numpy as np
 import pandas as pd
 import requests

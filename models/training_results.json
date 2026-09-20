@@ -1,0 +1,37 @@
+{
+  "gistemp_sha256": "737ddcdc78e8ec488d8eaafa316af6c1489d5cf2b4afa054056e6a4ddc3c5001",
+  "test_window": "2015-01 .. 2024-07",
+  "n_test": 115,
+  "metrics": {
+    "seasonal_naive": {
+      "mae": 0.1680,
+      "rmse": 0.2180,
+      "skill_score": 0.0,
+      "skill_score_h12": 0.0
+    },
+    "climatology": {
+      "mae": 1.0402,
+      "rmse": 1.0553,
+      "skill_score": -3.8409,
+      "skill_score_h12": -3.9006
+    },
+    "xgboost": {
+      "mae": 0.4929,
+      "rmse": 0.5172,
+      "skill_score": -1.3726,
+      "skill_score_h12": -1.7768
+    },
+    "lightgbm": {
+      "mae": 0.4472,
+      "rmse": 0.4734,
+      "skill_score": -1.1715,
+      "skill_score_h12": -1.6646
+    },
+    "lstm": {
+      "mae": 0.4428,
+      "rmse": 0.4662,
+      "skill_score": -1.1383,
+      "skill_score_h12": -1.5418
+    }
+  }
+}
