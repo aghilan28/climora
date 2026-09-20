@@ -30,6 +30,6 @@
     "anomaly_c_diff_1",
     "anomaly_c_diff_12"
   ],
-  "trained_at": "2026-09-20T17:09:29.721871+00:00",
+  "trained_at": "2026-09-20T17:11:24.817107+00:00",
   "best_val_loss": 0.0
 }

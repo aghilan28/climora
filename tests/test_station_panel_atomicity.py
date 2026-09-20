@@ -37,9 +37,9 @@ def test_no_fillna_literal_in_geo_package() -> None:
 
 def test_download_all_datasets_atomic_failure(monkeypatch: pytest.MonkeyPatch) -> None:
     """Assert download_all_datasets exits with non-zero code if any station download fails."""
-    import scripts.download_data as dd
-
     from typing import Any
+
+    import scripts.download_data as dd
 
     def mock_load_station(*args: Any, **kwargs: Any) -> tuple[pd.DataFrame, dict[str, str]]:
         station_name = str(args[0])

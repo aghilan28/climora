@@ -3,8 +3,6 @@
 import time
 from unittest.mock import patch
 
-import pytest
-
 from config.settings import settings
 from src.data.loaders import load_ersst_nino_data, load_gistemp_data, load_noaa_co2_data
 from src.features.pipeline import build_feature_matrix

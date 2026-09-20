@@ -23,6 +23,7 @@ def test_no_pytest_skip_in_test_suite() -> None:
 def test_cache_poisoning_mock_target_is_actually_invoked(tmp_path: Path) -> None:
     """Assert patch for NasaGissProvider targets the exact Session.get method called in production."""
     import requests
+
     from src.data.providers.nasa_giss import NasaGissProvider
 
     prov = NasaGissProvider(tmp_path)

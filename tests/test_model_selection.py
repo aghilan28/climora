@@ -3,8 +3,6 @@
 import json
 from pathlib import Path
 
-import pytest
-
 
 def test_model_selection_badge_and_h12_metrics() -> None:
     """Assert 'Best Model' badge logic enforces skill_score > 0 and h=1/h=12 metrics exist."""

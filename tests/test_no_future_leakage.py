@@ -44,7 +44,6 @@ def test_no_future_leakage_negative_control_raises_on_target_injection(fixtures_
     # Force a target column into feature_cols to test runtime raise
     df_feats["anomaly_c_h12"] = df_feats["anomaly_c"].shift(-12)
 
-    from src.splits.chronological import ChronologicalSplit
     with pytest.raises(ValueError, match="Future leakage error"):
         # Explicitly pass df where anomaly_c is both target and in X
         df_invalid = df_feats.copy()
