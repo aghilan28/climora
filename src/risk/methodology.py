@@ -1,7 +1,6 @@
 """Dual methodology risk threshold computation engine."""
 
 from typing import Dict
-
 import numpy as np
 import pandas as pd
 
@@ -13,8 +12,13 @@ def compute_methodology_a_thresholds(y_train: pd.Series) -> Dict[str, float]:
     """Methodology A — Empirical Train-Set Quantiles.
 
     Uses train-set quantiles (50th, 75th, 90th, 97th percentiles) so thresholds
-    are data-derived and leak-free.
+    are data-derived and leak-free. Strictly requires train set (<= 1999-12-31).
     """
+    if isinstance(y_train.index, pd.DatetimeIndex):
+        max_date = y_train.index.max()
+        if max_date > pd.Timestamp("1999-12-31"):
+            raise ValueError(f"Leakage Error: Methodology A thresholds must be computed strictly on training set (<= 1999-12-31). Got max date {max_date}")
+
     clean = y_train.dropna()
     return {
         "low": float(np.percentile(clean, 50)),
@@ -25,19 +29,13 @@ def compute_methodology_a_thresholds(y_train: pd.Series) -> Dict[str, float]:
 
 
 def compute_methodology_b_thresholds(offset_c: float | None = None) -> Dict[str, float]:
-    """Methodology B — Literature-Anchored Pre-Industrial Thresholds.
-
-    Thresholds: +0.5°C, +1.0°C, +1.5°C, and +2.0°C above pre-industrial baseline (1850–1900).
-    Converts GISTEMP 1951–1980 reference to pre-industrial explicitly:
-    GISTEMP_anomaly = PreIndustrial_anomaly - offset_c
-    Where offset_c = 0.25 °C (IPCC AR6 estimated offset).
-    """
+    """Methodology B — Literature-Anchored Pre-Industrial Thresholds."""
     offset = offset_c if offset_c is not None else settings.pre_industrial_offset_c
     return {
-        "low": 0.50 - offset,        # 0.25 °C in GISTEMP baseline
-        "moderate": 1.00 - offset,   # 0.75 °C in GISTEMP baseline
-        "high": 1.50 - offset,       # 1.25 °C in GISTEMP baseline (+1.5°C Paris Agreement limit)
-        "extreme": 2.00 - offset,    # 1.75 °C in GISTEMP baseline (+2.0°C upper limit)
+        "low": 0.50 - offset,
+        "moderate": 1.00 - offset,
+        "high": 1.50 - offset,
+        "extreme": 2.00 - offset,
     }
 
 

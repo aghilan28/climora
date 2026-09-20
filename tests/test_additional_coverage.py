@@ -1,5 +1,6 @@
 """Unit tests expanding coverage for metrics, manifest, risk context, logging, baselines, artifacts, providers, loaders, geo, and explainability."""
 
+import json
 from pathlib import Path
 from typing import Any, Dict
 from unittest.mock import patch
@@ -173,6 +174,64 @@ def test_loaders_offline(
     assert entry_geo["dataset_name"] == "Natural Earth GeoJSON"
 
 
+def test_manifest_provenance_validation(tmp_path: Path) -> None:
+    mgr = ManifestManager(manifest_path=tmp_path / "manifest.json")
+    with pytest.raises(ValueError, match="Invalid provenance"):
+        mgr.record_provenance(
+            "TestDS",
+            source_url="https://example.com",
+            sha256="a" * 64,
+            bytes=100,
+            rows=10,
+            download_date="2026-09-20",
+            snapshot_version="v1",
+            provenance="invalid-prov",
+        )
+
+    entry = mgr.record_provenance(
+        "TestDS",
+        source_url="https://example.com",
+        sha256="a" * 64,
+        bytes=100,
+        rows=10,
+        download_date="2026-09-20",
+        snapshot_version="v1",
+        provenance="live-fetch",
+    )
+    assert entry["provenance"] == "live-fetch"
+    assert mgr.load()["datasets"]["TestDS"]["sha256"] == "a" * 64
+
+
+def test_openmeteo_multi_location_parse(tmp_path: Path) -> None:
+    prov = OpenMeteoProvider(tmp_path)
+    multi_json = json.dumps([
+        {
+            "latitude": 13.08,
+            "longitude": 80.27,
+            "elevation": 6.0,
+            "daily": {
+                "time": ["2020-01-01"],
+                "temperature_2m_max": [30.0],
+                "temperature_2m_min": [20.0],
+            },
+        },
+        {
+            "latitude": 28.61,
+            "longitude": 77.20,
+            "elevation": 216.0,
+            "daily": {
+                "time": ["2020-01-01"],
+                "temperature_2m_max": [25.0],
+                "temperature_2m_min": [15.0],
+            },
+        },
+    ]).encode("utf-8")
+
+    df = prov.parse(multi_json)
+    assert len(df) == 2
+    assert "temperature_2m_mean" in df.columns
+
+
 def test_provider_fetch_cache_hits(
     tmp_path: Path,
     gistemp_fixture_bytes: bytes,
@@ -210,10 +269,10 @@ def test_nasa_provider_errors_and_fallbacks(tmp_path: Path) -> None:
     with pytest.raises(ValueError):
         prov.parse(b"single line")
 
-    # Test network failure fallback to sample fixture
-    with patch("requests.get", side_effect=Exception("Connection error")):
-        bytes_out = prov.fetch_raw(offline=False)
-        assert len(bytes_out) > 0
+    # Test network failure without cache raises RuntimeError per F2
+    with patch("requests.Session.get", side_effect=Exception("Connection error")):
+        with pytest.raises(RuntimeError, match="Data not available"):
+            prov.fetch_raw(offline=False)
 
 
 def test_geo_package_functions() -> None:

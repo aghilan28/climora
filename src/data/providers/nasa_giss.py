@@ -1,9 +1,11 @@
 """NASA GISS GISTEMP v4 dataset provider."""
 
 import io
-
 import numpy as np
 import pandas as pd
+import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 from config.settings import settings
 from src.data.providers.base import BaseProvider
@@ -25,31 +27,28 @@ class NasaGissProvider(BaseProvider):
         cache_file = self.cache_dir / "gistemp_raw.csv"
         if cache_file.exists():
             logger.info("Reading NASA GISTEMP from cache: %s", cache_file)
+            self.last_provenance = "cache"
             return cache_file.read_bytes()
 
         if offline:
             raise FileNotFoundError(f"Offline mode enabled and cache missing: {cache_file}")
 
         logger.info("Fetching NASA GISTEMP from network: %s", self.source_url)
-        import requests
-        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
-        content = None
+        session = requests.Session()
+        retries = Retry(total=3, backoff_factor=1, status_forcelist=[500, 502, 503, 504])
+        session.mount("https://", HTTPAdapter(max_retries=retries))
+        session.mount("http://", HTTPAdapter(max_retries=retries))
+
         try:
-            resp = requests.get(self.source_url, headers=headers, timeout=5)
+            resp = session.get(self.source_url, headers={"User-Agent": "CLIMORA-AI/1.0"}, timeout=(10, 60))
             resp.raise_for_status()
             content = resp.content
+            self.last_provenance = "live-fetch"
         except Exception as e:
-            logger.warning("Network fetch failed for NASA GISTEMP: %s. Using authentic local dataset fixture.", e)
-            sample_file = settings.base_dir / "data" / "sample" / "gistemp_sample.csv"
-            fixture_file = settings.base_dir / "tests" / "fixtures" / "gistemp_sample.csv"
-            if sample_file.exists():
-                content = sample_file.read_bytes()
-            elif fixture_file.exists():
-                content = fixture_file.read_bytes()
-            else:
-                raise RuntimeError(f"Failed to fetch NASA GISTEMP and no fallback dataset found: {e}") from e
+            logger.error("Network fetch failed for NASA GISTEMP: %s", e)
+            raise RuntimeError(f"Data not available for NASA GISTEMP. Run: python scripts/download_data.py ({e})") from e
 
-        # Atomic write
+        # Atomic write to cache on successful fetch ONLY
         part_file = cache_file.with_suffix(".part")
         part_file.write_bytes(content)
         part_file.replace(cache_file)
@@ -60,11 +59,9 @@ class NasaGissProvider(BaseProvider):
         text = raw_bytes.decode("utf-8")
         lines = [line.strip() for line in text.splitlines() if line.strip()]
 
-        # Basic contract assertions
         if len(lines) < 3:
             raise ValueError(f"GISTEMP raw file too short: {len(lines)} lines")
 
-        # Line 1 is title row; Header is Line 2
         df_wide = pd.read_csv(
             io.StringIO("\n".join(lines)),
             skiprows=1,
@@ -76,14 +73,12 @@ class NasaGissProvider(BaseProvider):
             if col in df_wide.columns:
                 df_wide[col] = pd.to_numeric(df_wide[col], errors="coerce")
 
-        # Transform wide table to long time-series
         month_map = {m: i + 1 for i, m in enumerate(month_cols)}
         records = []
         for _idx, row in df_wide.iterrows():
             year = int(row["Year"])
             for m_str, m_num in month_map.items():
                 val = row[m_str]
-                # Date formatted as YYYY-MM-01
                 date_str = f"{year:04d}-{m_num:02d}-01"
                 records.append({
                     "date": pd.to_datetime(date_str),

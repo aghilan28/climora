@@ -53,7 +53,7 @@ def test_no_future_leakage(gistemp_fixture_bytes: bytes, tmp_path) -> None:
     df_feat_perturbed = build_feature_matrix(df_perturbed)
 
     # For all rows BEFORE target_idx (0 to target_idx - 1), all feature values must be IDENTICAL
-    feat_cols = [c for c in df_feat_orig.columns if c not in ["date", "anomaly_c", "year", "month"]]
+    feat_cols = [c for c in df_feat_orig.columns if c not in ["date", "anomaly_c", "anomaly_c_h12", "year", "month"]]
 
     orig_sub = df_feat_orig.loc[: target_idx - 1, feat_cols].dropna(how="all")
     pert_sub = df_feat_perturbed.loc[: target_idx - 1, feat_cols].dropna(how="all")

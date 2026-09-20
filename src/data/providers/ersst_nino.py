@@ -26,6 +26,7 @@ class ERSSTNinoProvider(BaseProvider):
         cache_file = self.cache_dir / "ersst_nino_raw.ascii"
         if cache_file.exists():
             logger.info("Reading CPC ERSST Nino from cache: %s", cache_file)
+            self.last_provenance = "cache"
             return cache_file.read_bytes()
 
         if offline:
@@ -36,6 +37,7 @@ class ERSSTNinoProvider(BaseProvider):
         req = urllib.request.Request(self.source_url, headers={"User-Agent": "CLIMORA-AI/1.0"})
         with urllib.request.urlopen(req, context=ctx, timeout=30) as resp:
             content = resp.read()
+            self.last_provenance = "live-fetch"
 
         part_file = cache_file.with_suffix(".part")
         part_file.write_bytes(content)

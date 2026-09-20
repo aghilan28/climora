@@ -63,6 +63,7 @@ cd climora
 pip install -r requirements.txt
 pip install -r requirements-dev.txt
 pip install -e .
+python scripts/download_data.py
 ```
 
 ## 9. Environment Setup
@@ -89,14 +90,14 @@ python scripts/train_models.py
 Trained model artifacts and metadata will be persisted to `models/trained/`, `models/metadata/`, and `models/metrics/`.
 
 ## 12. Model Evaluation
-Evaluated test performance on real NASA GISTEMP v4 dataset (Chronological Test Split):
+Evaluated test performance on pinned GISTEMP snapshot `737ddcdc78e8ec488d8eaafa316af6c1489d5cf2b4afa054056e6a4ddc3c5001` (Realised Test Window: `2015-01 .. 2024-07`, `n_test=115` months):
 
 | Model Name | MAE (°C) | RMSE (°C) | $R^2$ | Skill Score vs Seasonal Naive |
 | :--- | :--- | :--- | :--- | :--- |
 | **Seasonal Naive Baseline** | **0.1680** | **0.2180** | **-0.5025** | **0.0000** |
-| **PyTorch LSTM** | 0.4304 | 0.4563 | -5.5865 | -1.0933 |
-| **LightGBM** | 0.4361 | 0.4633 | -5.7894 | -1.1253 |
-| **XGBoost** | 0.5164 | 0.5394 | -8.2027 | -1.4744 |
+| **PyTorch LSTM** | 0.3649 | 0.3961 | -3.9622 | -0.8170 |
+| **LightGBM** | 0.4348 | 0.4634 | -5.7915 | -1.1257 |
+| **XGBoost** | 0.5098 | 0.5353 | -8.0643 | -1.4557 |
 | **Climatology Baseline** | 1.0405 | 1.0553 | -34.2198 | -3.8407 |
 
 > **Scientific Insight**: On monthly global mean land-ocean temperature anomaly nowcasting, the 12-month Seasonal Naive persistence baseline achieves superior performance (MAE 0.1680 °C) compared to complex ML regression models (MAE ~0.43–0.51 °C). This empirical result demonstrates that month-over-month noise and strong annual persistence dominate short-term global mean anomaly dynamics.

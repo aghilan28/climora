@@ -1,7 +1,7 @@
 """PyTorch LSTM climate forecasting model with multi-step horizon capability."""
 
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
@@ -95,6 +95,8 @@ class PyTorchLSTMClimateModel(ClimateModel):
 
         X_train_clean = X_train.fillna(0.0)
         X_tr_scaled = self.scaler.fit_transform(X_train_clean)
+        if hasattr(self.scaler, "scale_") and self.scaler.scale_ is not None:
+            self.scaler.scale_[self.scaler.scale_ == 0.0] = 1.0
 
         seq_len = int(self.params.get("sequence_length", 24))
         X_tr_seq, y_tr_seq = self._create_sequences(X_tr_scaled, y_train.values, seq_len)
@@ -164,7 +166,7 @@ class PyTorchLSTMClimateModel(ClimateModel):
             "name": self.name,
             "params": self.params,
             "feature_names": self.feature_names,
-            "trained_at": datetime.utcnow().isoformat(),
+            "trained_at": datetime.now(timezone.utc).isoformat(),
             "best_val_loss": best_val_loss if best_val_loss != float("inf") else 0.0,
         }
         logger.info("PyTorch LSTM training complete.")

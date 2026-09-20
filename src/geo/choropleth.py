@@ -14,12 +14,17 @@ def get_country_polygons() -> Dict[str, Any]:
         geo_path = settings.base_dir / "data" / "sample" / "natural_earth_110m.geojson"
 
     if not geo_path.exists():
-        logger.warning("Natural Earth GeoJSON not found at %s", geo_path)
-        return {"type": "FeatureCollection", "features": []}
+        logger.error("Natural Earth GeoJSON not found at %s", geo_path)
+        raise FileNotFoundError(
+            f"Natural Earth GeoJSON missing at {geo_path}. Run python scripts/download_data.py first."
+        )
 
     try:
         data = json.loads(geo_path.read_text(encoding="utf-8"))
+        features = data.get("features", [])
+        if not features:
+            raise ValueError(f"Natural Earth GeoJSON at {geo_path} contains 0 features.")
         return data
     except Exception as e:
         logger.error("Failed to parse Natural Earth GeoJSON: %s", e)
-        return {"type": "FeatureCollection", "features": []}
+        raise

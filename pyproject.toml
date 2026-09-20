@@ -44,6 +44,7 @@ ignore_missing_imports = true
 minversion = "8.0"
 testpaths = ["tests"]
 python_files = ["test_*.py"]
+filterwarnings = ["error::RuntimeWarning"]
 markers = [
     "network: marks tests that require external network access",
     "slow: marks tests that take more than 5 seconds",

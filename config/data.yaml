@@ -4,13 +4,14 @@ dataset:
   target_col: "anomaly_c"
   temporal_frequency: "MS" # Month Start
   baseline_period: "1951-1980"
+  pinned_sha256: "737ddcdc78e8ec488d8eaafa316af6c1489d5cf2b4afa054056e6a4ddc3c5001"
   split:
     train_start: "1880-01-01"
     train_end: "1999-12-01"
     val_start: "2000-01-01"
     val_end: "2014-12-01"
     test_start: "2015-01-01"
-    test_end: "2025-12-01"
+    test_end: "2024-08-01"
   partial_years_excluded: [2026]
 
 station_panel:
@@ -40,15 +41,15 @@ station_panel:
     - name: "Jaipur"
       lat: 26.9124
       lon: 75.7873
+    - name: "Pune"
+      lat: 18.5204
+      lon: 73.8567
     - name: "Lucknow"
       lat: 26.8467
       lon: 80.9462
+    - name: "Patna"
+      lat: 25.5941
+      lon: 85.1376
     - name: "Guwahati"
       lat: 26.1445
       lon: 91.7362
-    - name: "Srinagar"
-      lat: 34.0837
-      lon: 74.7973
-    - name: "Thiruvananthapuram"
-      lat: 8.5241
-      lon: 76.9366

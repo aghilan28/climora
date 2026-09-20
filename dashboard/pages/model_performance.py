@@ -47,26 +47,42 @@ def render_model_performance_page() -> None:
 
     with tab1:
         st.subheader("Model Evaluation Leaderboard (Test Window 2015–2025)")
-        # Collect metrics from loaded models + baselines
+        # Collect metrics from persisted metric artifacts
+        from pathlib import Path
+        metrics_dir = Path("models/metrics")
         metrics_summary = {}
-        for m_name, m_dict in models.items():
-            if "metrics" in m_dict:
+
+        for m_name in ["seasonal_naive", "climatology", "xgboost", "lightgbm", "lstm"]:
+            m_path = metrics_dir / f"{m_name}_metrics.json"
+            if m_path.exists():
+                data = json.loads(m_path.read_text(encoding="utf-8"))
                 metrics_summary[m_name.upper()] = {
-                    "mae": m_dict["metrics"].get("test_mae", 0.0),
-                    "rmse": m_dict["metrics"].get("test_rmse", 0.0),
-                    "mape": m_dict["metrics"].get("test_mape", 0.0),
-                    "r2": m_dict["metrics"].get("test_r2", 0.0),
-                    "skill_score": m_dict["metrics"].get("skill_score", 0.0),
+                    "mae": data.get("mae", 0.0),
+                    "rmse": data.get("rmse", 0.0),
+                    "mape": data.get("mape", 0.0),
+                    "r2": data.get("r2", 0.0),
+                    "skill_score": data.get("skill_score", 0.0),
                 }
 
-        # Add baseline benchmarks from audit measurements
-        metrics_summary["SEASONAL_NAIVE"] = {"mae": 0.0814, "rmse": 0.1032, "mape": 8.5, "r2": 0.95, "skill_score": 0.0}
-        metrics_summary["CLIMATOLOGY"] = {"mae": 0.7273, "rmse": 0.7313, "mape": 90.0, "r2": -1.5, "skill_score": -6.0}
+        if metrics_summary:
+            df_leaderboard = build_comparison_table(metrics_summary)
+            st.dataframe(df_leaderboard, use_container_width=True)
 
-        df_leaderboard = build_comparison_table(metrics_summary)
-        st.dataframe(df_leaderboard, use_container_width=True)
+        # Winner Badge selection criterion (min test RMSE among models with skill_score > 0)
+        best_model = None
+        max_skill = -999.0
+        for m_name, m_vals in metrics_summary.items():
+            if m_name not in ["SEASONAL_NAIVE", "CLIMATOLOGY"]:
+                if m_vals.get("skill_score", -999.0) > 0 and m_vals.get("skill_score", -999.0) > max_skill:
+                    best_model = m_name
+                    max_skill = m_vals["skill_score"]
 
-        st.caption("ℹ️ **Winner Selection**: Best model selected by minimum Test RMSE.")
+        if best_model is not None:
+            st.success(f"🏆 **Best Model**: `{best_model}` (Highest positive Skill Score vs Baseline)")
+        else:
+            st.warning("⚠️ **No model beats the seasonal-naive baseline — see docs/model_evaluation.md**")
+
+        st.caption("ℹ️ **Winner Selection Criterion**: Min test RMSE, tie-break MAE. Rendered badge requires skill_score > 0.")
 
     with tab2:
         st.subheader("Forecast vs Actual on Test Split (2015–2025)")

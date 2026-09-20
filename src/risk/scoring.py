@@ -1,7 +1,6 @@
 """Deterministic risk scoring (0-100) engine."""
 
 from typing import Dict, Tuple
-
 import numpy as np
 import pandas as pd
 
@@ -15,23 +14,13 @@ from src.risk.methodology import (
 
 def compute_risk_score(
     anomaly: float,
+    thresholds: Dict[str, float],
     rolling_exceedance_frac: float = 0.0,
     methodology: str = "A",
-    thresholds: Dict[str, float] | None = None,
 ) -> Tuple[float, RiskBand]:
-    """Compute deterministic risk score (0-100) and risk band.
-
-    Score formulation:
-    - Base term: monotone linear scaling of anomaly relative to low and extreme thresholds (0-80 pts).
-    - Persistence term: rolling exceedance fraction * 20 pts (0-20 pts).
-    Total score = min(100.0, max(0.0, Base + Persistence)).
-    """
-    if thresholds is None:
-        if methodology.upper() == "B":
-            thresholds = compute_methodology_b_thresholds()
-        else:
-            # Fallback default empirical bounds if train set not passed
-            thresholds = {"low": 0.0, "moderate": 0.45, "high": 0.85, "extreme": 1.15}
+    """Compute deterministic risk score (0-100) and risk band using required thresholds."""
+    if thresholds is None or not isinstance(thresholds, dict):
+        raise TypeError("thresholds must be explicitly provided as a Dict[str, float]")
 
     t_low = thresholds["low"]
     t_extreme = thresholds["extreme"]
@@ -62,12 +51,17 @@ def score_dataframe_risk(
         return df_out
 
     if methodology.upper() == "A":
-        ref_series = train_df[target_col] if train_df is not None else df_out[target_col]
+        ref_df = train_df if train_df is not None else df_out
+        if "date" in ref_df.columns:
+            ref_series = ref_df[ref_df["date"] <= "1999-12-31"][target_col]
+            if len(ref_series) == 0:
+                ref_series = ref_df[target_col]
+        else:
+            ref_series = ref_df[target_col]
         thresholds = compute_methodology_a_thresholds(ref_series)
     else:
         thresholds = compute_methodology_b_thresholds()
 
-    # Compute rolling exceedance fraction over 12 months
     high_threshold = thresholds["high"]
     is_high = (df_out[target_col].shift(1) >= high_threshold).astype(float)
     rolling_exceedance = is_high.rolling(window=12, min_periods=1).mean().fillna(0.0)
@@ -80,7 +74,7 @@ def score_dataframe_risk(
             bands.append(RiskBand.LOW)
         else:
             p_frac = float(rolling_exceedance.loc[idx])
-            s, b = compute_risk_score(float(anom), p_frac, methodology, thresholds)
+            s, b = compute_risk_score(float(anom), thresholds, p_frac, methodology)
             scores.append(s)
             bands.append(b)
 

@@ -1,7 +1,7 @@
 """LightGBM model implementation adhering to ClimateModel protocol."""
 
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
@@ -49,9 +49,13 @@ class LightGBMClimateModel(ClimateModel):
     ) -> "LightGBMClimateModel":
         self.feature_names = list(X_train.columns)
 
-        # Fit scaler ONLY on train slice to prevent leakage
-        X_tr_scaled = self.scaler.fit_transform(X_train)
-        X_val_scaled = self.scaler.transform(X_val) if X_val is not None else None
+        # Fit scaler ONLY on train slice to prevent leakage (fillna 0.0 prevents NaNs in scaling)
+        X_tr = X_train.fillna(0.0)
+        X_tr_scaled = self.scaler.fit_transform(X_tr)
+        if hasattr(self.scaler, "scale_") and self.scaler.scale_ is not None:
+            self.scaler.scale_[self.scaler.scale_ == 0.0] = 1.0
+
+        X_val_scaled = self.scaler.transform(X_val.fillna(0.0)) if X_val is not None else None
 
         self.model = lgb.LGBMRegressor(
             n_estimators=self.params.get("n_estimators", 300),
@@ -85,7 +89,7 @@ class LightGBMClimateModel(ClimateModel):
             "name": self.name,
             "params": self.params,
             "feature_names": self.feature_names,
-            "trained_at": datetime.utcnow().isoformat(),
+            "trained_at": datetime.now(timezone.utc).isoformat(),
             "best_iteration": int(getattr(self.model, "best_iteration_", 0)),
         }
         logger.info("LightGBM climate model training complete.")
@@ -95,7 +99,7 @@ class LightGBMClimateModel(ClimateModel):
         if not self._is_fitted or self.model is None:
             raise RuntimeError("LightGBM model must be fitted before predict()")
 
-        X_sub = X[self.feature_names]
+        X_sub = X[self.feature_names].fillna(0.0)
         X_scaled = self.scaler.transform(X_sub)
         if hasattr(self.model, "predict"):
             try:

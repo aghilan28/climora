@@ -35,6 +35,7 @@ class GeoJSONProvider(BaseProvider):
         cache_file = self.cache_dir / f"natural_earth_{self.scale}.geojson"
         if cache_file.exists():
             logger.info("Reading GeoJSON %s from cache: %s", self.scale, cache_file)
+            self.last_provenance = "cache"
             return cache_file.read_bytes()
 
         if offline:
@@ -45,6 +46,7 @@ class GeoJSONProvider(BaseProvider):
         req = urllib.request.Request(self.source_url, headers={"User-Agent": "CLIMORA-AI/1.0"})
         with urllib.request.urlopen(req, context=ctx, timeout=60) as resp:
             content = resp.read()
+            self.last_provenance = "live-fetch"
 
         cache_file.write_bytes(content)
         return content

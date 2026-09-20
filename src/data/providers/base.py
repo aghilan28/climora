@@ -2,6 +2,7 @@
 
 import hashlib
 from abc import ABC, abstractmethod
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -14,6 +15,7 @@ class BaseProvider(ABC):
     def __init__(self, cache_dir: Path) -> None:
         self.cache_dir = cache_dir
         self.cache_dir.mkdir(parents=True, exist_ok=True)
+        self.last_provenance: str = "cache"
 
     @property
     @abstractmethod
@@ -44,16 +46,20 @@ class BaseProvider(ABC):
     def get_manifest_entry(
         self, raw_bytes: bytes, df: pd.DataFrame, extra: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
-        """Generate standardized metadata manifest entry."""
+        """Generate standardized metadata manifest entry with required provenance fields."""
+        sha = self.compute_sha256(raw_bytes)
         entry: Dict[str, Any] = {
             "dataset_name": self.name,
             "source_url": self.source_url,
-            "sha256": self.compute_sha256(raw_bytes),
+            "sha256": sha,
             "raw_byte_count": len(raw_bytes),
             "rows": len(df),
             "columns": list(df.columns),
             "column_count": len(df.columns),
             "missing_cells": int(df.isna().sum().sum()),
+            "download_date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+            "snapshot_version": sha[:16],
+            "provenance": getattr(self, "last_provenance", "cache"),
         }
         if extra:
             entry.update(extra)

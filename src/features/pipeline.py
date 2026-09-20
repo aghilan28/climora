@@ -63,4 +63,7 @@ def build_feature_matrix(
     if cols_to_drop:
         df_feat = df_feat.drop(columns=cols_to_drop)
 
+    # 7. Target Head for 12-Month-Ahead Forecast (h=12)
+    df_feat["anomaly_c_h12"] = df_feat[target_col].shift(-12)
+
     return df_feat.sort_values("date").reset_index(drop=True)

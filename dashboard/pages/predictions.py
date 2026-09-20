@@ -1,10 +1,40 @@
 """Predictions page module for CLIMORA AI dashboard."""
 
+from typing import Any, Dict, Tuple
+
+import pandas as pd
 import pydeck as pdk
 import streamlit as st
 
 from dashboard.state import AppState, StateStage, get_feature_df, get_models
 from src.risk.scoring import compute_risk_score
+
+
+def compute_uncertainty_interval(
+    pred_val: float,
+    metrics: Dict[str, Any],
+    model_obj: Any = None,
+    input_row: pd.DataFrame | None = None,
+) -> Tuple[float, float, str]:
+    """Compute uncertainty interval bounds and return (ci_lower, ci_upper, method_caption)."""
+    if model_obj is not None and input_row is not None and hasattr(model_obj, "predict_interval"):
+        try:
+            lower_arr, upper_arr = model_obj.predict_interval(input_row, alpha=0.05)
+            return (
+                float(lower_arr[0]),
+                float(upper_arr[0]),
+                "95% interval derived from train-fitted pinball-loss quantile regression",
+            )
+        except Exception:
+            pass
+
+    if "rmse" not in metrics:
+        raise KeyError(f"Evaluation metrics missing required 'rmse' field: {list(metrics.keys())}")
+
+    rmse = float(metrics["rmse"])
+    ci_lower = pred_val - 1.96 * rmse
+    ci_upper = pred_val + 1.96 * rmse
+    return ci_lower, ci_upper, "95% interval derived from model evaluation RMSE"
 
 
 def render_predictions_page() -> None:
@@ -62,19 +92,13 @@ def render_predictions_page() -> None:
             preds = model_obj.predict(input_row)
             pred_val = float(preds[0])
 
-            # Real Uncertainty estimation derived strictly from model evaluation metrics
+            # Uncertainty interval calculation per F8
             metrics = model_entry.get("metrics", {})
-            rmse = float(metrics.get("rmse", metrics.get("mae", 0.0)))
-            if rmse == 0.0:
-                # If metric dictionary key is formatted differently, check all float values
-                float_vals = [v for v in metrics.values() if isinstance(v, (int, float)) and v > 0]
-                rmse = float_vals[0] if float_vals else 0.10
-
-            ci_lower = pred_val - 1.96 * rmse
-            ci_upper = pred_val + 1.96 * rmse
+            ci_lower, ci_upper, unc_caption = compute_uncertainty_interval(pred_val, metrics, model_obj, input_row)
 
             # Risk Score computation
-            risk_score, risk_band = compute_risk_score(pred_val)
+            thresholds_a = AppState.get_risk_thresholds("A")
+            risk_score, risk_band = compute_risk_score(pred_val, thresholds=thresholds_a)
 
             st.divider()
             st.subheader("📌 Prediction Output & Risk Assessment")

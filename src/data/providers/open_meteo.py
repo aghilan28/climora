@@ -53,6 +53,7 @@ class OpenMeteoProvider(BaseProvider):
 
         if cache_file.exists():
             logger.info("Reading Open-Meteo station '%s' from cache: %s", station_name, cache_file)
+            self.last_provenance = "cache"
             return cache_file.read_bytes()
 
         if offline:
@@ -69,10 +70,25 @@ class OpenMeteoProvider(BaseProvider):
         url = f"{self.source_url}?{urllib.parse.urlencode(params)}"
         logger.info("Fetching Open-Meteo station '%s' from network: %s", station_name, url)
 
+        import time
         ctx = ssl.create_default_context()
         req = urllib.request.Request(url, headers={"User-Agent": "CLIMORA-AI/1.0"})
-        with urllib.request.urlopen(req, context=ctx, timeout=60) as resp:
-            content = resp.read()
+
+        content = None
+        for attempt in range(5):
+            try:
+                time.sleep(1.2 * (attempt + 1))
+                with urllib.request.urlopen(req, context=ctx, timeout=60) as resp:
+                    content = resp.read()
+                    self.last_provenance = "live-fetch"
+                break
+            except Exception as e:
+                logger.warning("Open-Meteo fetch attempt %d failed for %s: %s", attempt + 1, station_name, e)
+                if attempt == 4:
+                    raise
+
+        if content is None:
+            raise RuntimeError(f"Failed to fetch Open-Meteo data for {station_name}")
 
         part_file = cache_file.with_suffix(".part")
         part_file.write_bytes(content)

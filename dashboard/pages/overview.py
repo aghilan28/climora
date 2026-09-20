@@ -31,7 +31,8 @@ def render_overview_page() -> None:
     latest_anomaly = float(df["anomaly_c"].iloc[-1]) if "anomaly_c" in df.columns else 0.0
 
     # Risk Calculation from latest row
-    risk_score, risk_band = compute_risk_score(latest_anomaly)
+    thresholds_a = AppState.get_risk_thresholds("A")
+    risk_score, risk_band = compute_risk_score(latest_anomaly, thresholds=thresholds_a)
 
     # Anomaly Count from session state if ready
     anomaly_res = st.session_state.get("anomaly_result", {})

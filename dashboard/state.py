@@ -166,6 +166,28 @@ class AppState:
                     logger.debug(f"Model {model_name} could not be loaded: {e}")
         return models
 
+    @classmethod
+    def get_risk_thresholds(cls, methodology: str = "A") -> Dict[str, float]:
+        """Compute or retrieve cached train-derived (<= 1999) risk thresholds."""
+        cache_key = f"_risk_thresholds_{methodology.upper()}"
+        if cache_key in st.session_state:
+            return st.session_state[cache_key]
+
+        if methodology.upper() == "A":
+            clean_df = get_clean_gistemp()
+            if clean_df is not None and "date" in clean_df.columns:
+                train_slice = clean_df[clean_df["date"] <= "1999-12-31"]["anomaly_c"]
+            else:
+                train_slice = pd.Series([0.0])
+            from src.risk.methodology import compute_methodology_a_thresholds
+            thresholds = compute_methodology_a_thresholds(train_slice)
+        else:
+            from src.risk.methodology import compute_methodology_b_thresholds
+            thresholds = compute_methodology_b_thresholds()
+
+        st.session_state[cache_key] = thresholds
+        return thresholds
+
 
 def get_raw_gistemp() -> Optional[pd.DataFrame]:
     """Retrieve raw GISTEMP DataFrame from session state."""

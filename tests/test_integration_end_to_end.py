@@ -58,12 +58,14 @@ def test_end_to_end_pipeline_integration(gistemp_fixture_bytes: bytes) -> None:
     pred_val = float(preds[0])
 
     # 7. Risk Engine Scoring
-    risk_score, risk_band = compute_risk_score(pred_val)
+    from src.risk.methodology import compute_methodology_a_thresholds
+    thresh = compute_methodology_a_thresholds(splits.y_train)
+    risk_score, risk_band = compute_risk_score(pred_val, thresholds=thresh, methodology="A")
     assert 0.0 <= risk_score <= 100.0
     assert risk_band.value in ["Low", "Moderate", "High", "Severe", "Extreme"]
 
     # Cross-Module Consistency (§66): Recompute risk score from prediction and assert bitwise equality
-    recomputed_score, recomputed_band = compute_risk_score(pred_val)
+    recomputed_score, recomputed_band = compute_risk_score(pred_val, thresholds=thresh, methodology="A")
     assert risk_score == recomputed_score
     assert risk_band == recomputed_band
 

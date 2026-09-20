@@ -40,7 +40,8 @@ def render_risk_page() -> None:
         meth_code = "A" if "Method A" in methodology else "B"
     with col2:
         latest_anomaly = float(clean_df["anomaly_c"].iloc[-1]) if "anomaly_c" in clean_df.columns else 0.0
-        risk_score, risk_band = compute_risk_score(latest_anomaly, methodology=meth_code)
+        thresholds_selected = AppState.get_risk_thresholds(meth_code)
+        risk_score, risk_band = compute_risk_score(latest_anomaly, thresholds=thresholds_selected, methodology=meth_code)
         st.metric("Current Anomaly", f"{latest_anomaly:+.2f} °C")
         st.metric("Risk Level", f"{risk_band.value} ({risk_score:.0f}/100)")
 
@@ -75,11 +76,40 @@ def render_risk_page() -> None:
             st.plotly_chart(fig, use_container_width=True)
 
     with tab2:
-        st.subheader("🗺️ Regional Risk Map (India Station Network)")
+        st.subheader("🗺️ Regional Risk Map & Global Boundaries")
+        from src.geo.choropleth import get_country_polygons
+        from src.geo.frames import build_temporal_map_frames
         from src.geo.risk_surface import compute_station_risk_surface
-        station_data = compute_station_risk_surface(latest_anomaly, methodology=meth_code)
 
-        layer = pdk.Layer(
+        # 1. GeoJSON Choropleth Country Layer
+        country_geojson = get_country_polygons()
+        geojson_layer = pdk.Layer(
+            "GeoJsonLayer",
+            country_geojson,
+            opacity=0.3,
+            stroked=True,
+            filled=True,
+            extruded=False,
+            wireframe=True,
+            get_fill_color="[70, 130, 180, 80]",
+            get_line_color="[200, 200, 200, 120]",
+            get_line_width=5000,
+            pickable=True,
+        )
+
+        # 2. Historical Temporal Scrubber
+        st.markdown("#### ⏱️ Historical Map Scrubber")
+        map_frames = build_temporal_map_frames(clean_df, sample_interval=12)
+        if map_frames:
+            frame_dates = [f["date"] for f in map_frames]
+            selected_date = st.select_slider("Select Historical Snapshot Date", options=frame_dates, value=frame_dates[-1])
+            selected_frame = next(f for f in map_frames if f["date"] == selected_date)
+            st.caption(f"Historical Snapshot: **{selected_date}** | Global Anomaly: **{selected_frame['global_anomaly_c']:+.2f} °C**")
+            station_data = pd.DataFrame(selected_frame["stations"])
+        else:
+            station_data = compute_station_risk_surface(latest_anomaly, methodology=meth_code)
+
+        station_layer = pdk.Layer(
             "ColumnLayer",
             data=station_data,
             get_position=["lon", "lat"],
@@ -92,7 +122,11 @@ def render_risk_page() -> None:
         )
 
         view_state = pdk.ViewState(latitude=21.0, longitude=78.0, zoom=4, pitch=45)
-        r = pdk.Deck(layers=[layer], initial_view_state=view_state, tooltip={"text": "{station}: Risk Score {risk_score} ({band})"})
+        r = pdk.Deck(
+            layers=[geojson_layer, station_layer],
+            initial_view_state=view_state,
+            tooltip={"text": "{station}: Risk Score {risk_score} ({band})"},
+        )
         st.pydeck_chart(r)
         st.dataframe(station_data[["station", "state", "elevation", "station_anomaly_c", "risk_score", "band"]], use_container_width=True)
 

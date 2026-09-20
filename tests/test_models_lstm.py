@@ -26,7 +26,9 @@ def test_lstm_sequence_creation_and_shapes(gistemp_fixture_bytes: bytes, tmp_pat
         split = make_chronological_split(df_feats, train_end="1930-01-01", val_end="1950-01-01")
 
     model = PyTorchLSTMClimateModel(params={"sequence_length": 12, "epochs": 5, "seed": 42})
-    X_tr_scaled = model.scaler.fit_transform(split.X_train)
+    X_tr_scaled = model.scaler.fit_transform(split.X_train.fillna(0.0))
+    if hasattr(model.scaler, "scale_") and model.scaler.scale_ is not None:
+        model.scaler.scale_[model.scaler.scale_ == 0.0] = 1.0
 
     X_seq, y_seq = model._create_sequences(X_tr_scaled, split.y_train.values, seq_len=12)
 
@@ -46,7 +48,7 @@ def test_lstm_sequence_creation_and_shapes(gistemp_fixture_bytes: bytes, tmp_pat
     assert len(model.scaler.mean_) == split.X_train.shape[1]
 
     # Assertion 4: Inverse-scaler round-trips within 1e-6
-    sample = split.X_train.iloc[:5].values
+    sample = split.X_train.fillna(0.0).iloc[:5].values
     scaled = model.scaler.transform(sample)
     unscaled = model.scaler.inverse_transform(scaled)
     assert np.allclose(sample, unscaled, atol=1e-6, equal_nan=True)

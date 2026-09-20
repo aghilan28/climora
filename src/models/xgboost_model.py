@@ -47,9 +47,13 @@ class XGBoostClimateModel(ClimateModel):
     ) -> "XGBoostClimateModel":
         self.feature_names = list(X_train.columns)
 
-        # Fit scaler ONLY on train slice to prevent leakage
-        X_tr_scaled = self.scaler.fit_transform(X_train)
-        X_val_scaled = self.scaler.transform(X_val) if X_val is not None else None
+        # Fit scaler ONLY on train slice to prevent leakage (fillna 0.0 prevents NaNs in scaling)
+        X_tr = X_train.fillna(0.0)
+        X_tr_scaled = self.scaler.fit_transform(X_tr)
+        if hasattr(self.scaler, "scale_") and self.scaler.scale_ is not None:
+            self.scaler.scale_[self.scaler.scale_ == 0.0] = 1.0
+
+        X_val_scaled = self.scaler.transform(X_val.fillna(0.0)) if X_val is not None else None
 
         self.model = xgb.XGBRegressor(
             n_estimators=self.params.get("n_estimators", 300),
@@ -74,11 +78,33 @@ class XGBoostClimateModel(ClimateModel):
         )
 
         self._is_fitted = True
+        from datetime import timezone
+
+        # Quantile regressors for 95% interval [2.5%, 97.5%]
+        self.lower_model = xgb.XGBRegressor(
+            objective="reg:quantileerror",
+            quantile_alpha=0.025,
+            n_estimators=min(100, self.params.get("n_estimators", 300)),
+            max_depth=3,
+            random_state=settings.seed,
+            n_jobs=-1,
+        )
+        self.upper_model = xgb.XGBRegressor(
+            objective="reg:quantileerror",
+            quantile_alpha=0.975,
+            n_estimators=min(100, self.params.get("n_estimators", 300)),
+            max_depth=3,
+            random_state=settings.seed,
+            n_jobs=-1,
+        )
+        self.lower_model.fit(X_tr_scaled, y_train.values, verbose=False)
+        self.upper_model.fit(X_tr_scaled, y_train.values, verbose=False)
+
         self.training_meta = {
             "name": self.name,
             "params": self.params,
             "feature_names": self.feature_names,
-            "trained_at": datetime.utcnow().isoformat(),
+            "trained_at": datetime.now(timezone.utc).isoformat(),
             "best_iteration": int(getattr(self.model, "best_iteration", 0)),
         }
         logger.info("XGBoost climate model training complete.")
@@ -89,18 +115,26 @@ class XGBoostClimateModel(ClimateModel):
             raise RuntimeError("XGBoost model must be fitted before predict()")
 
         # Ensure correct column ordering
-        X_sub = X[self.feature_names]
+        X_sub = X[self.feature_names].fillna(0.0)
         X_scaled = self.scaler.transform(X_sub)
         return self.model.predict(X_scaled)
 
     def predict_interval(self, X: pd.DataFrame, alpha: float = 0.10) -> Tuple[np.ndarray, np.ndarray]:
-        """Predict prediction interval bounds using residual standard error estimate."""
+        """Predict 95% interval bounds using train-fitted pinball-loss quantile regression."""
+        if not self._is_fitted or self.scaler is None:
+            raise RuntimeError("Model must be fitted before predict_interval()")
+
+        X_sub = X[self.feature_names]
+        X_scaled = self.scaler.transform(X_sub)
+        if hasattr(self, "lower_model") and hasattr(self, "upper_model") and self.lower_model is not None and self.upper_model is not None:
+            lower = self.lower_model.predict(X_scaled)
+            upper = self.upper_model.predict(X_scaled)
+            return lower, upper
+
         preds = self.predict(X)
         std_err = float(self.training_meta.get("val_rmse", 0.15))
-        z = 1.645 if alpha == 0.10 else 1.96
-        lower = preds - (z * std_err)
-        upper = preds + (z * std_err)
-        return lower, upper
+        z = 1.96
+        return preds - (z * std_err), preds + (z * std_err)
 
     def save(self, model_dir: Path) -> Path:
         model_dir.mkdir(parents=True, exist_ok=True)
